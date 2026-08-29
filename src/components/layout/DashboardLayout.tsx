@@ -19,7 +19,7 @@ const links: Array<{ key: PageKey; label: string; icon: string }> = [
 export function DashboardLayout({ page, onNavigate, children }: Props) {
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <header className="app-header">
         <div className="brand">
           <div className="brand-mark">NW</div>
           <div>
@@ -42,14 +42,13 @@ export function DashboardLayout({ page, onNavigate, children }: Props) {
           ))}
         </nav>
 
-        <div className="sidebar-footer">
+        <div className="header-status">
           <HealthBadge />
-          <small>React + NestJS + PostgreSQL</small>
         </div>
-      </aside>
+      </header>
 
       <main className="main-area">
-        <header className="topbar">
+        <header className="content-header">
           <div>
             <p className="eyebrow">NextWave Hackathon 2026</p>
             <h1>Payment orchestration monitor</h1>
