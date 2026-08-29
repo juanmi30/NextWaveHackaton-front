@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getHealth, type Health } from './lib/api'
+import { getHealth } from './lib/api'
+import type { Health } from './types/domain'
 
 export function HealthBadge() {
   const [state, setState] = useState<Health | 'loading' | 'error'>('loading')
@@ -8,7 +9,13 @@ export function HealthBadge() {
     getHealth().then(setState).catch(() => setState('error'))
   }, [])
 
-  if (state === 'loading') return <p>Conectando con la API…</p>
-  if (state === 'error') return <p>API inalcanzable</p>
-  return <p>API: {state.status} · BD: {state.db}</p>
+  if (state === 'loading') return <span className="health-badge neutral">API…</span>
+  if (state === 'error') return <span className="health-badge danger">API offline</span>
+
+  const healthy = state.status === 'ok' && state.db === 'up'
+  return (
+    <span className={`health-badge ${healthy ? 'success' : 'warning'}`} title={`DB: ${state.db}`}>
+      {healthy ? 'API connected' : `API ${state.status} · DB ${state.db}`}
+    </span>
+  )
 }

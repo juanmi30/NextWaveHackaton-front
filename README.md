@@ -1,32 +1,37 @@
-# React + TypeScript + Vite
+# NextWave Hackathon Front
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript + Vite frontend aligned with the current NestJS backend.
 
-Currently, two official plugins are available:
+## Local setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Set `VITE_API_URL` to the backend root, **without** `/api` at the end:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+## Current screens
+
+- `#/` — payment health overview and route-risk analysis.
+- `#/incidents` — list, acknowledge and resolve incidents.
+- `#/transactions` — inspect transaction events and filter by provider/status.
+
+Hash navigation is intentional for the hackathon base: no extra routing dependency is needed and Vercel refreshes stay simple.
+
+## Demo flow from the UI
+
+1. **Seed demo** creates deterministic transaction history with a degraded route.
+2. **Detect risk** runs backend analytics and creates HIGH/CRITICAL incidents.
+3. Review the route on Overview, then manage it under Incidents.
+
+The degraded seed route is `Nova Travel / dLocal / CARD / CO / Bancolombia`.
+
+## What was reused from the previous Yuno front
+
+The reusable ideas were retained: feature-oriented API modules, dashboard shell/navigation, operational tables, status cards and separation by screen. Old hardcoded API URLs, TypeORM-era response assumptions and heavy chart/UI dependencies were intentionally not copied.

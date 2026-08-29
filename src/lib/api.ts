@@ -1,21 +1,46 @@
-// VITE_API_URL es la RAIZ de la API, sin /api al final.
-// El prefijo /api va en cada path, porque /health esta excluido del prefijo global.
-const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '');
+import type { Health } from '../types/domain'
+
+const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '')
+
+export class ApiError extends Error {
+  status: number
+
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!BASE) {
-    throw new Error('Falta VITE_API_URL. Revisa .env.local o las env vars de Vercel.');
+    throw new Error('Falta VITE_API_URL. Crea .env.local usando .env.example como base.')
   }
-  const res = await fetch(`${BASE}${path}`, {
+
+  const response = await fetch(`${BASE}${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-  });
-  if (!res.ok) {
-    throw new Error(`${res.status} ${res.statusText} — ${await res.text()}`);
+    headers: {
+      'Content-Type': 'application/json',
+      ...init?.headers,
+    },
+  })
+
+  if (!response.ok) {
+    const body = await response.text()
+    throw new ApiError(response.status, body || response.statusText)
   }
-  return res.json() as Promise<T>;
+
+  if (response.status === 204) return undefined as T
+  return response.json() as Promise<T>
 }
 
-export type Health = { status: string; db: string; uptime: number; ts: string };
+export function withQuery(path: string, params: Record<string, string | number | boolean | undefined>) {
+  const query = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') query.set(key, String(value))
+  })
+  const suffix = query.toString()
+  return suffix ? `${path}?${suffix}` : path
+}
 
-export const getHealth = () => api<Health>('/health');
+export const getHealth = () => api<Health>('/health')
