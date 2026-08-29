@@ -9,7 +9,7 @@ export function useRoutingRecommendation(): RoutingRecommendation {
   const { watchedRoute } = useRouteHealth()
 
   return useMemo(() => {
-    const significantDegradation = events.some((event) => event.metrics && event.metrics.deviation < -10)
+    const significantDegradation = events.some((event) => typeof event.metrics?.deviation === 'number' && event.metrics.deviation < -10)
     let status: RoutingRecommendation['status'] = 'WAITING'
     if (latestEvent?.phase === 'VERIFY' && latestEvent.status === 'success') status = 'COMPLETED'
     else if (latestEvent?.phase === 'DECIDE' || latestEvent?.phase === 'ACT' || latestEvent?.phase === 'VERIFY') status = 'RECOMMENDED'

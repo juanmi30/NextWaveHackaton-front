@@ -13,8 +13,8 @@ export function AgentSummaryCard() {
   return <article className="panel agent-summary">
     <div className="agent-summary-heading"><div><p className="eyebrow">AI Agent</p><h3>{activity}</h3>{route ? <p>{route.provider} · {route.paymentMethod} · {country}</p> : null}</div>{isRunning && latestEvent ? <span className="agent-live-label"><i /> LIVE</span> : null}</div>
     <div className="agent-summary-stats">
-      <div><span>Approval deviation</span><strong>{metrics ? `${metrics.deviation}%` : '--'}</strong></div>
-      <div><span>Confidence</span><strong>{decision ? `${decision.confidence}%` : '--'}</strong></div>
+      <div><span>Approval deviation</span><strong>{metrics?.deviation !== undefined ? `${metrics.deviation}%` : '--'}</strong></div>
+      <div><span>Confidence</span><strong>{decision?.confidence !== undefined ? `${decision.confidence}%` : '--'}</strong></div>
       <div><span>Risk</span><strong>{decision?.riskLevel ?? '--'}</strong></div>
     </div>
     {demoStatus === 'IDLE' ? <button type="button" className="button primary agent-summary-link" onClick={startDemo}>Start demo</button> : demoStatus === 'COMPLETED' ? <button type="button" className="button secondary agent-summary-link" onClick={startDemo}>Replay</button> : <a className="button secondary agent-summary-link" href="#/agent-live">View live activity →</a>}

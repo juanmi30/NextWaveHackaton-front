@@ -1,9 +1,15 @@
 import { useAgentStreamContext } from '../../agent/context/AgentStreamContext'
+import { useRouteHealth } from '../hooks/useRouteHealth'
 
 export function RiskEvolution() {
   const { events } = useAgentStreamContext()
-  const points = events.filter((event) => event.metrics).map((event) => ({ phase: event.phase, approval: event.metrics!.currentApproval, baseline: event.metrics!.baselineApproval }))
-  const baseline = points.at(-1)?.baseline ?? 83
+  const { watchedRoute } = useRouteHealth()
+  const points = events.flatMap((event) => {
+    const approval = event.metrics?.currentApproval
+    const baseline = event.metrics?.baselineApproval
+    return typeof approval === 'number' && typeof baseline === 'number' ? [{ phase: event.phase, approval, baseline }] : []
+  })
+  const baseline = points.at(-1)?.baseline ?? watchedRoute?.baselineApproval ?? 0
   const x = (index: number) => points.length < 2 ? 300 : 48 + index * (520 / (points.length - 1))
   const y = (value: number) => 184 - (value - 55) * (140 / 45)
   const polyline = points.map((point, index) => `${x(index)},${y(point.approval)}`).join(' ')

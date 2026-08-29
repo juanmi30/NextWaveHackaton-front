@@ -83,6 +83,7 @@ td strong { display: block; max-width: 340px; }
 .agent-pulse { width: 12px; height: 12px; border-radius: 50%; background: #97a0af; box-shadow: 0 0 0 5px #eef1f6; }
 .agent-pulse.active { background: var(--brand); box-shadow: 0 0 0 5px #ebe8ff; animation: agent-pulse 1.4s ease-in-out infinite; }
 .agent-pulse.complete { background: var(--success); box-shadow: 0 0 0 5px #def5e8; }
+.data-source-label { padding: 5px 8px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--muted); font-size: 10px; font-weight: 750; }
 .demo-controls { padding: 18px; margin-bottom: 18px; }
 .demo-control-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .demo-control-row > div:first-child { display: grid; gap: 5px; }

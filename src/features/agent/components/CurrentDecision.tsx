@@ -11,10 +11,10 @@ export function CurrentDecision({ events }: { events: AgentEvent[] }) {
     <dl className="decision-list">
       <div><dt>Route</dt><dd>{route ? `${route.provider} / ${route.paymentMethod} / ${route.country} / ${route.issuer}` : '--'}</dd></div>
       <div><dt>Risk Level</dt><dd>{decision?.riskLevel ?? '--'}</dd></div>
-      <div><dt>Current approval</dt><dd>{metrics ? `${metrics.currentApproval}%` : '--'}</dd></div>
-      <div><dt>24h baseline</dt><dd>{metrics ? `${metrics.baselineApproval}%` : '--'}</dd></div>
-      <div><dt>Deviation</dt><dd>{metrics ? `${metrics.deviation}%` : '--'}</dd></div>
-      <div><dt>Confidence</dt><dd>{decision ? `${decision.confidence}%` : '--'}</dd></div>
+      <div><dt>Current approval</dt><dd>{metrics?.currentApproval !== undefined ? `${metrics.currentApproval}%` : '--'}</dd></div>
+      <div><dt>24h baseline</dt><dd>{metrics?.baselineApproval !== undefined ? `${metrics.baselineApproval}%` : '--'}</dd></div>
+      <div><dt>Deviation</dt><dd>{metrics?.deviation !== undefined ? `${metrics.deviation}%` : '--'}</dd></div>
+      <div><dt>Confidence</dt><dd>{decision?.confidence !== undefined ? `${decision.confidence}%` : '--'}</dd></div>
       <div className="decision-action"><dt>Action</dt><dd>{decision?.action ?? '--'}</dd></div>
     </dl>
   </article>

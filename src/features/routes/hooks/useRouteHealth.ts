@@ -3,8 +3,9 @@ import { useAgentStreamContext } from '../../agent/context/AgentStreamContext'
 import { mockRoutes } from '../services/mockRoutes'
 import type { RouteHealth, RouteRiskLevel } from '../types/route-health.types'
 import { calculateRiskScore, riskLevelFromScore } from '../utils/risk'
+import { approvalDropColombia } from '../../agent/scenarios/approvalDropColombia'
 
-const routeMatches = (health: RouteHealth, provider: string, paymentMethod: string, country: string, issuer: string) =>
+const routeMatches = (health: RouteHealth, provider: string, paymentMethod: string, country: string, issuer?: string) =>
   health.provider === provider && health.paymentMethod === paymentMethod && health.country === country && health.issuer === issuer
 
 export function useRouteHealth() {
@@ -26,7 +27,7 @@ export function useRouteHealth() {
       const status = riskLevel === 'CRITICAL' ? 'critical' : riskLevel === 'LOW' ? 'healthy' : 'degraded'
       return { ...base, currentApproval, baselineApproval, deviation, transactionCount: latestMetrics?.transactionCount ?? base.transactionCount, riskScore, riskLevel, status, updatedAt: activeEvent.timestamp }
     })
-    const watchedRoute = activeRoute ? routes.find((route) => routeMatches(route, activeRoute.provider, activeRoute.paymentMethod, activeRoute.country, activeRoute.issuer)) ?? null : routes.find((route) => route.id === 'dlocal-card-co-bancolombia') ?? null
+    const watchedRoute = activeRoute ? routes.find((route) => routeMatches(route, activeRoute.provider, activeRoute.paymentMethod, activeRoute.country, activeRoute.issuer)) ?? null : routes.find((route) => route.id === approvalDropColombia.initialRoute.id) ?? null
     return { routes, watchedRoute, watchedRouteId: activeRoute ? watchedRoute?.id ?? null : null }
   }, [events])
 }
