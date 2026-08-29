@@ -5,6 +5,7 @@ import { IncidentsPage } from './pages/IncidentsPage'
 import { OverviewPage } from './pages/OverviewPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { AgentLivePage } from './features/agent/pages/AgentLivePage'
+import { AgentStreamProvider } from './features/agent/context/AgentStreamContext'
 
 const pageFromHash = (): PageKey => {
   const hash = window.location.hash.replace('#/', '')
@@ -32,11 +33,7 @@ function App() {
   if (page === 'transactions') content = <TransactionsPage />
   if (page === 'agent-live') content = <AgentLivePage />
 
-  return (
-    <DashboardLayout page={page} onNavigate={navigate}>
-      {content}
-    </DashboardLayout>
-  )
+  return <AgentStreamProvider><DashboardLayout page={page} onNavigate={navigate}>{content}</DashboardLayout></AgentStreamProvider>
 }
 
 export default App

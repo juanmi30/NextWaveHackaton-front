@@ -4,6 +4,7 @@ import { RiskTable } from '../components/dashboard/RiskTable'
 import { detectRisk, getAnalyticsSummary, getRiskAnalysis, seedDemo } from '../features/dashboard/dashboardApi'
 import { getIncidents } from '../features/incidents/incidentsApi'
 import type { AnalyticsSummary, Incident, RiskAnalysis } from '../types/domain'
+import { AgentSummaryCard } from '../features/agent/components/AgentSummaryCard'
 
 const percent = (value = 0) => `${(value * 100).toFixed(1)}%`
 
@@ -88,6 +89,8 @@ export function OverviewPage() {
         <MetricCard label="Open incidents" value={loading ? '—' : String(summary?.openIncidentCount ?? 0)} detail={`${summary?.highCriticalIncidentCount ?? 0} high / critical`} tone={(summary?.openIncidentCount ?? 0) > 0 ? 'warning' : 'default'} />
         <MetricCard label="Critical routes" value={loading ? '—' : String(analysis?.summary.critical ?? 0)} detail={`${analysis?.summary.high ?? 0} high risk`} tone={(analysis?.summary.critical ?? 0) > 0 ? 'danger' : 'default'} />
       </div>
+
+      <AgentSummaryCard />
 
       <div className="panel-grid">
         <article className="panel panel-wide">
