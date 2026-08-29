@@ -9,7 +9,7 @@ import { RouteHealthTable } from '../features/routes/components/RouteHealthTable
 import { useRouteHealth } from '../features/routes/hooks/useRouteHealth'
 import { RoutingRecommendationCard } from '../features/routing/components/RoutingRecommendationCard'
 
-const percent = (value = 0) => `${(value * 100).toFixed(1)}%`
+const percent = (value?: number | null) => typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : 'N/A'
 
 export function OverviewPage() {
   const { routes, watchedRouteId } = useRouteHealth()
@@ -60,7 +60,7 @@ export function OverviewPage() {
     setError(null)
     try {
       const result = await detectRisk()
-      setAction(`${result.incidentsCreated} incident(s) created`)
+      setAction(typeof result.incidentsCreated === 'number' ? `${result.incidentsCreated} incident(s) created` : 'Detection completed')
       await refresh()
       window.setTimeout(() => setAction(null), 1800)
     } catch (err) {
@@ -128,8 +128,8 @@ export function OverviewPage() {
               <div className="incident-item" key={incident.id}>
                 <span className={`severity-dot severity-${incident.severity}`} />
                 <div>
-                  <strong>{incident.title}</strong>
-                  <span>{percent(incident.observedRate)} now · {percent(incident.baselineRate)} baseline</span>
+                  <strong>{incident.summaryOps ?? 'No operational summary'}</strong>
+                  <span>{percent(incident.diagnoses?.[0]?.observedRate)} now · {percent(incident.diagnoses?.[0]?.baselineRate)} baseline</span>
                 </div>
               </div>
             ))}

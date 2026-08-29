@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { acknowledgeIncident, getIncidents, resolveIncident } from '../features/incidents/incidentsApi'
 import type { Incident, IncidentStatus } from '../types/domain'
 
-const percent = (value: number) => `${(value * 100).toFixed(1)}%`
+const percent = (value?: number | null) => typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : 'N/A'
 const money = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 
 export function IncidentsPage() {
@@ -64,10 +64,10 @@ export function IncidentsPage() {
             <tbody>
               {incidents.map((incident) => (
                 <tr key={incident.id}>
-                  <td><strong>{incident.title}</strong><span className="cell-subtitle">{incident.recommendation ?? 'No recommendation'}</span></td>
+                  <td><strong>{incident.summaryOps ?? 'No operational summary'}</strong><span className="cell-subtitle">{incident.summaryExec ?? 'No executive summary'}</span></td>
                   <td><span className={`pill status-${incident.status.toLowerCase()}`}>{incident.status}</span></td>
-                  <td>{percent(incident.observedRate)} <span className="muted">vs {percent(incident.baselineRate)}</span></td>
-                  <td>{money(incident.estimatedLoss)}</td>
+                  <td>{incident.diagnoses?.[0] ? <>{percent(incident.diagnoses[0].observedRate)} <span className="muted">vs {percent(incident.diagnoses[0].baselineRate)}</span></> : <span className="muted">No diagnosis available</span>}</td>
+                  <td>{money(incident.lossPerMinuteCents)}</td>
                   <td>{new Date(incident.detectedAt).toLocaleString()}</td>
                   <td>
                     <div className="row-actions">

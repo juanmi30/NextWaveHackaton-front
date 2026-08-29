@@ -16,6 +16,15 @@ export type AnalyticsSummary = {
   openIncidentCount: number
   highCriticalIncidentCount: number
 }
+export type AnalyticsSummaryResponse = {
+  transactions: number
+  approved: number
+  approvalRate: number
+  failureRate: number
+  incidents: { open: number; acknowledged: number; resolved: number; highCritical: number }
+  detection: unknown
+  state: unknown
+}
 
 export type WindowMetrics = {
   total: number
@@ -65,14 +74,12 @@ export type RiskAnalysis = {
 
 export type Incident = {
   id: string
-  title: string
-  dimensions: Record<string, string>
+  summaryOps?: string | null
+  summaryExec?: string | null
   severity: number
   status: IncidentStatus
-  baselineRate: number
-  observedRate: number
-  estimatedLoss: number
-  recommendation: string | null
+  lossPerMinuteCents: number
+  diagnoses: Array<{ baselineRate?: number | null; observedRate?: number | null; dimensions?: Record<string, string | null>; evidence?: Array<Record<string, unknown>> }>
   detectedAt: string
   resolvedAt: string | null
 }
