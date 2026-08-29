@@ -24,3 +24,14 @@ export function formatRecurrence(value: AgentDiagnosis['recurrence']): string {
   if (!recurring && count === 0) return 'No previous occurrences'
   return `Recurring incident · ${count} previous ${count === 1 ? 'occurrence' : 'occurrences'}`
 }
+
+export type ResponseCodePresentation = { responseCode?: string; classification?: string; category?: string; retryPolicy?: string }
+export function getResponseCodePresentation(evidence: AgentDiagnosis['evidence']): ResponseCodePresentation | null {
+  const item = evidence.find((entry) => entry.metric === 'response_code_classification')
+  if (!item) return null
+  const record = item as unknown as Record<string, unknown>
+  const read = (key: string) => typeof record[key] === 'string' ? record[key] : undefined
+  const retryability = read('retryability')
+  const retryPolicy = retryability === 'UNKNOWN' ? 'Not established' : retryability === 'HARD' ? 'Hard decline — automatic retry not recommended' : retryability
+  return { responseCode: read('responseCode') ?? read('code'), classification: read('classification'), category: read('category'), retryPolicy }
+}
