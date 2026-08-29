@@ -4,10 +4,11 @@ import { DashboardLayout, type PageKey } from './components/layout/DashboardLayo
 import { IncidentsPage } from './pages/IncidentsPage'
 import { OverviewPage } from './pages/OverviewPage'
 import { TransactionsPage } from './pages/TransactionsPage'
+import { AgentLivePage } from './features/agent/pages/AgentLivePage'
 
 const pageFromHash = (): PageKey => {
   const hash = window.location.hash.replace('#/', '')
-  if (hash === 'incidents' || hash === 'transactions') return hash
+  if (hash === 'incidents' || hash === 'transactions' || hash === 'agent-live') return hash
   return 'overview'
 }
 
@@ -29,6 +30,7 @@ function App() {
   let content = <OverviewPage />
   if (page === 'incidents') content = <IncidentsPage />
   if (page === 'transactions') content = <TransactionsPage />
+  if (page === 'agent-live') content = <AgentLivePage />
 
   return (
     <DashboardLayout page={page} onNavigate={navigate}>

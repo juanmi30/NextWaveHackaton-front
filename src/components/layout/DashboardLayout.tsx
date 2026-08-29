@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { HealthBadge } from '../../HealthBadge'
 
-export type PageKey = 'overview' | 'incidents' | 'transactions'
+export type PageKey = 'overview' | 'incidents' | 'transactions' | 'agent-live'
 
 type Props = {
   page: PageKey
@@ -13,6 +13,7 @@ const links: Array<{ key: PageKey; label: string; icon: string }> = [
   { key: 'overview', label: 'Overview', icon: '◫' },
   { key: 'incidents', label: 'Incidents', icon: '⚠' },
   { key: 'transactions', label: 'Transactions', icon: '↔' },
+  { key: 'agent-live', label: 'Agent Live', icon: '●' },
 ]
 
 export function DashboardLayout({ page, onNavigate, children }: Props) {
