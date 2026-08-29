@@ -26,7 +26,7 @@ export function useRouteHealth() {
       const status = riskLevel === 'CRITICAL' ? 'critical' : riskLevel === 'LOW' ? 'healthy' : 'degraded'
       return { ...base, currentApproval, baselineApproval, deviation, transactionCount: latestMetrics?.transactionCount ?? base.transactionCount, riskScore, riskLevel, status, updatedAt: activeEvent.timestamp }
     })
-    const watchedRoute = activeRoute ? routes.find((route) => routeMatches(route, activeRoute.provider, activeRoute.paymentMethod, activeRoute.country, activeRoute.issuer)) ?? null : null
-    return { routes, watchedRoute, watchedRouteId: watchedRoute?.id ?? null }
+    const watchedRoute = activeRoute ? routes.find((route) => routeMatches(route, activeRoute.provider, activeRoute.paymentMethod, activeRoute.country, activeRoute.issuer)) ?? null : routes.find((route) => route.id === 'dlocal-card-co-bancolombia') ?? null
+    return { routes, watchedRoute, watchedRouteId: activeRoute ? watchedRoute?.id ?? null : null }
   }, [events])
 }

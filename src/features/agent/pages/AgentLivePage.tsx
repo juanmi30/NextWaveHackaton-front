@@ -9,13 +9,15 @@ import { useRoutingRecommendation } from '../../routing/hooks/useRoutingRecommen
 import { RoutingDecisionFlow } from '../../routing/components/RoutingDecisionFlow'
 import { RoutingRecommendation } from '../../routing/components/RoutingRecommendation'
 import { RoutingCandidateTable } from '../../routing/components/RoutingCandidateTable'
+import { DemoControls } from '../components/DemoControls'
 export function AgentLivePage() {
-  const { events, latestEvent, isRunning } = useAgentStreamContext()
+  const { events, latestEvent, demoStatus } = useAgentStreamContext()
   const { watchedRoute } = useRouteHealth()
   const routing = useRoutingRecommendation()
   return <section className="page-content">
     <div className="page-heading"><div><p className="eyebrow">Real-time observability</p><h2>Agent Live</h2><p>Follow the agent as it monitors, evaluates, and responds to route risk.</p></div></div>
-    <AgentStatus latestEvent={latestEvent} isRunning={isRunning} />
+    <AgentStatus latestEvent={latestEvent} demoStatus={demoStatus} />
+    <DemoControls />
     <div className="route-live-grid"><RouteHealthLive route={watchedRoute} /><RiskEvolution /></div>
     <div className="agent-live-grid">
       <article className="panel"><div className="panel-header"><div><h3>Agent timeline</h3><p>{events.length} events in this run</p></div></div><AgentTimeline events={events} /></article>

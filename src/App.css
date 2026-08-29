@@ -83,6 +83,19 @@ td strong { display: block; max-width: 340px; }
 .agent-pulse { width: 12px; height: 12px; border-radius: 50%; background: #97a0af; box-shadow: 0 0 0 5px #eef1f6; }
 .agent-pulse.active { background: var(--brand); box-shadow: 0 0 0 5px #ebe8ff; animation: agent-pulse 1.4s ease-in-out infinite; }
 .agent-pulse.complete { background: var(--success); box-shadow: 0 0 0 5px #def5e8; }
+.demo-controls { padding: 18px; margin-bottom: 18px; }
+.demo-control-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.demo-control-row > div:first-child { display: grid; gap: 5px; }
+.scenario-progress { display: grid; grid-template-columns: repeat(5, 1fr); margin: 18px 0 0; padding: 0; list-style: none; }
+.scenario-progress li { position: relative; display: grid; justify-items: center; gap: 7px; color: #98a0af; font-size: 10px; font-weight: 800; }
+.scenario-progress li::before { content: ''; position: absolute; top: 5px; right: 50%; width: 100%; height: 2px; background: #e4e8f0; }
+.scenario-progress li:first-child::before { display: none; }
+.scenario-progress i { position: relative; z-index: 1; width: 12px; height: 12px; border: 2px solid #c9cfda; border-radius: 50%; background: white; }
+.scenario-progress li.complete { color: var(--success); }
+.scenario-progress li.complete::before { background: #9dd4b5; }
+.scenario-progress li.complete i { border-color: var(--success); background: var(--success); }
+.scenario-progress li.current { color: var(--brand); }
+.scenario-progress li.current i { border-color: var(--brand); box-shadow: 0 0 0 4px #ebe8ff; }
 .agent-live-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, .8fr); gap: 16px; align-items: start; }
 .agent-live-grid > aside { position: sticky; top: 20px; display: grid; gap: 10px; }
 .agent-timeline { padding: 20px 20px 8px; }
@@ -217,6 +230,9 @@ td strong { display: block; max-width: 340px; }
   .agent-summary { grid-template-columns: 1fr; gap: 16px; }
   .agent-summary-stats { justify-content: space-between; gap: 12px; }
   .agent-summary-link { width: fit-content; }
+  .demo-control-row { align-items: flex-start; flex-direction: column; }
+  .demo-control-row .actions { width: 100%; }
+  .scenario-progress li { font-size: 8px; }
   .route-live-metrics { grid-template-columns: repeat(2, 1fr); }
   .routing-flow { grid-template-columns: 1fr; }
   .routing-arrow { justify-self: center; transform: rotate(90deg); }
