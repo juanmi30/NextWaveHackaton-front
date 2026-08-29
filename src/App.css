@@ -127,6 +127,38 @@ td strong { display: block; max-width: 340px; }
 .agent-summary-stats span { color: var(--muted); font-size: 11px; }
 .agent-summary-stats strong { font-size: 17px; }
 .agent-summary-link { text-decoration: none; white-space: nowrap; font-size: 12px; }
+.route-live-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr); gap: 16px; margin-bottom: 18px; }
+.route-health-live .panel-header h3 { margin-top: 5px; font-size: 20px; }
+.watching-label { display: inline-flex; width: fit-content; padding: 4px 7px; border-radius: 999px; background: #ebe8ff; color: #5036d8; font-size: 9px; font-style: normal; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.cell-subtitle .watching-label { display: inline-flex; margin-left: 6px; }
+.route-live-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); }
+.route-live-metrics > div { display: grid; gap: 6px; padding: 14px 16px; background: white; }
+.route-live-metrics span { color: var(--muted); font-size: 11px; }
+.route-live-metrics strong { font-size: 17px; }
+.negative-value { color: var(--danger); }
+.approval-bars { display: grid; gap: 11px; padding: 17px 18px; }
+.approval-bars > div { display: grid; grid-template-columns: 60px 1fr 38px; align-items: center; gap: 10px; font-size: 11px; color: var(--muted); }
+.approval-bars > div > div { height: 8px; overflow: hidden; border-radius: 999px; background: #edf0f5; }
+.approval-bars i { display: block; height: 100%; border-radius: inherit; background: var(--brand); transition: width .35s ease; }
+.approval-bars > div:nth-child(2) i { background: #aab4c8; }
+.approval-bars strong { color: var(--ink); text-align: right; }
+.risk-chart-wrap { position: relative; padding: 10px 12px 2px; min-height: 225px; }
+.risk-chart-wrap svg { display: block; width: 100%; height: auto; overflow: visible; }
+.risk-chart-wrap text { fill: #8a93a4; font-size: 10px; }
+.chart-grid { stroke: #edf0f5; stroke-width: 1; }
+.chart-baseline { stroke: #aab4c8; stroke-width: 1.5; stroke-dasharray: 5 5; }
+.risk-chart-wrap .baseline-label { fill: #667085; font-weight: 700; }
+.chart-line { fill: none; stroke: var(--brand); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.chart-point { fill: white; stroke: var(--brand); stroke-width: 3; }
+.risk-chart-wrap .point-label { fill: var(--ink); font-weight: 800; }
+.chart-empty { position: absolute; inset: 50% 0 auto; color: var(--muted); font-size: 12px; text-align: center; }
+.route-health-overview { margin-bottom: 18px; }
+.route-health-table .route-watched { background: #faf9ff; }
+.route-health-table .route-watched td:first-child { box-shadow: inset 3px 0 var(--brand); }
+.route-status { text-transform: capitalize; font-size: 11px; font-weight: 750; }
+.route-status.healthy { color: var(--success); }
+.route-status.degraded { color: var(--warning); }
+.route-status.critical { color: var(--danger); }
 @keyframes agent-pulse { 50% { box-shadow: 0 0 0 9px rgba(93,61,245,.08); } }
 @keyframes agent-live { 50% { opacity: .4; } }
 @media (max-width: 1050px) { .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .panel-grid { grid-template-columns: 1fr; } }
@@ -146,7 +178,9 @@ td strong { display: block; max-width: 340px; }
   .input { min-width: 0; flex: 1; }
   .agent-live-grid { grid-template-columns: 1fr; }
   .agent-live-grid > aside { position: static; }
+  .route-live-grid { grid-template-columns: 1fr; }
   .agent-summary { grid-template-columns: 1fr; gap: 16px; }
   .agent-summary-stats { justify-content: space-between; gap: 12px; }
   .agent-summary-link { width: fit-content; }
+  .route-live-metrics { grid-template-columns: repeat(2, 1fr); }
 }

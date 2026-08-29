@@ -5,10 +5,13 @@ import { detectRisk, getAnalyticsSummary, getRiskAnalysis, seedDemo } from '../f
 import { getIncidents } from '../features/incidents/incidentsApi'
 import type { AnalyticsSummary, Incident, RiskAnalysis } from '../types/domain'
 import { AgentSummaryCard } from '../features/agent/components/AgentSummaryCard'
+import { RouteHealthTable } from '../features/routes/components/RouteHealthTable'
+import { useRouteHealth } from '../features/routes/hooks/useRouteHealth'
 
 const percent = (value = 0) => `${(value * 100).toFixed(1)}%`
 
 export function OverviewPage() {
+  const { routes, watchedRouteId } = useRouteHealth()
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
   const [analysis, setAnalysis] = useState<RiskAnalysis | null>(null)
   const [incidents, setIncidents] = useState<Incident[]>([])
@@ -91,6 +94,11 @@ export function OverviewPage() {
       </div>
 
       <AgentSummaryCard />
+
+      <article className="panel route-health-overview">
+        <div className="panel-header"><div><h3>Route health</h3><p>Live payment performance and agent monitoring status.</p></div></div>
+        <RouteHealthTable routes={routes} watchedRouteId={watchedRouteId} />
+      </article>
 
       <div className="panel-grid">
         <article className="panel panel-wide">
