@@ -7,6 +7,7 @@ import type { AnalyticsSummary, Incident, RiskAnalysis } from '../types/domain'
 import { AgentSummaryCard } from '../features/agent/components/AgentSummaryCard'
 import { RouteHealthTable } from '../features/routes/components/RouteHealthTable'
 import { useRouteHealth } from '../features/routes/hooks/useRouteHealth'
+import { RoutingRecommendationCard } from '../features/routing/components/RoutingRecommendationCard'
 
 const percent = (value = 0) => `${(value * 100).toFixed(1)}%`
 
@@ -94,6 +95,7 @@ export function OverviewPage() {
       </div>
 
       <AgentSummaryCard />
+      <RoutingRecommendationCard />
 
       <article className="panel route-health-overview">
         <div className="panel-header"><div><h3>Route health</h3><p>Live payment performance and agent monitoring status.</p></div></div>

@@ -159,6 +159,41 @@ td strong { display: block; max-width: 340px; }
 .route-status.healthy { color: var(--success); }
 .route-status.degraded { color: var(--warning); }
 .route-status.critical { color: var(--danger); }
+.routing-section { margin-top: 26px; }
+.routing-section-heading { margin-bottom: 14px; }
+.routing-section-heading h2 { margin: 5px 0 0; font-size: 22px; }
+.routing-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch; gap: 14px; padding: 18px; margin-bottom: 16px; }
+.routing-node { display: grid; align-content: center; gap: 5px; min-height: 105px; padding: 14px; border: 1px solid var(--line); border-radius: 11px; background: #fafbfe; }
+.routing-node span { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.routing-node strong { font-size: 17px; }
+.routing-node b { color: var(--muted); font-size: 11px; }
+.routing-node em { color: var(--success); font-size: 11px; font-style: normal; font-weight: 750; }
+.routing-node.orchestrator { border-color: #d8d1ff; background: #faf9ff; }
+.routing-node.recommended-node { border-color: #bde3ce; background: #f5fcf8; }
+.routing-arrow { align-self: center; color: var(--brand); font-size: 22px; }
+.routing-detail-grid { display: grid; grid-template-columns: minmax(300px, .8fr) minmax(0, 1.2fr); gap: 16px; align-items: start; }
+.routing-recommendation { overflow: hidden; }
+.routing-recommendation.empty-state { display: grid; justify-items: start; text-align: left; }
+.routing-recommendation.empty-state h3 { margin: 7px 0 0; }
+.evaluating-list { display: grid; gap: 1px; background: var(--line); }
+.evaluating-list > div { display: grid; grid-template-columns: 1fr repeat(3, auto); gap: 12px; padding: 13px 16px; background: white; font-size: 11px; }
+.evaluating-list span { color: var(--muted); }
+.recommendation-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); }
+.recommendation-metrics > div { display: grid; gap: 5px; padding: 13px 16px; background: white; }
+.recommendation-metrics span { color: var(--muted); font-size: 11px; }
+.recommendation-metrics strong { font-size: 16px; }
+.recommendation-reason { padding: 15px 18px; border-top: 1px solid var(--line); font-size: 12px; }
+.recommendation-reason ul { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px 20px; margin: 10px 0 0; padding-left: 18px; color: var(--muted); }
+.routing-candidates .candidate-recommended { background: #f5fcf8; }
+.routing-candidates td:first-child .watching-label { margin-top: 5px; }
+.availability { color: var(--success); font-size: 10px; font-weight: 800; text-transform: capitalize; }
+.availability.degraded { color: var(--warning); }
+.availability.unavailable { color: var(--danger); }
+.routing-summary-card { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(0, 1.5fr) auto; align-items: center; gap: 22px; padding: 16px 18px; margin-bottom: 18px; }
+.routing-summary-card h3 { margin: 5px 0 0; font-size: 15px; }
+.routing-summary-values { display: flex; justify-content: space-between; gap: 18px; }
+.routing-summary-values span { display: grid; gap: 4px; color: var(--muted); font-size: 10px; }
+.routing-summary-values strong { color: var(--ink); font-size: 13px; }
 @keyframes agent-pulse { 50% { box-shadow: 0 0 0 9px rgba(93,61,245,.08); } }
 @keyframes agent-live { 50% { opacity: .4; } }
 @media (max-width: 1050px) { .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .panel-grid { grid-template-columns: 1fr; } }
@@ -183,4 +218,9 @@ td strong { display: block; max-width: 340px; }
   .agent-summary-stats { justify-content: space-between; gap: 12px; }
   .agent-summary-link { width: fit-content; }
   .route-live-metrics { grid-template-columns: repeat(2, 1fr); }
+  .routing-flow { grid-template-columns: 1fr; }
+  .routing-arrow { justify-self: center; transform: rotate(90deg); }
+  .routing-detail-grid { grid-template-columns: 1fr; }
+  .routing-summary-card { grid-template-columns: 1fr; gap: 14px; }
+  .routing-summary-values { flex-wrap: wrap; }
 }
