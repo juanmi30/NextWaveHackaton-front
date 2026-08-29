@@ -8,16 +8,18 @@ import { AgentLivePage } from './features/agent/pages/AgentLivePage'
 import { AgentStreamProvider } from './features/agent/context/AgentStreamContext'
 
 const pageFromHash = (): PageKey => {
-  const hash = window.location.hash.replace('#/', '')
+  const hash = window.location.hash.replace('#/', '').split('?')[0]
   if (hash === 'incidents' || hash === 'transactions' || hash === 'agent-live') return hash
   return 'overview'
 }
+const incidentIdFromHash = () => new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('incidentId')
 
 function App() {
   const [page, setPage] = useState<PageKey>(pageFromHash)
+  const [incidentId, setIncidentId] = useState<string | null>(incidentIdFromHash)
 
   useEffect(() => {
-    const handleHashChange = () => setPage(pageFromHash())
+    const handleHashChange = () => { setPage(pageFromHash()); setIncidentId(incidentIdFromHash()) }
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
@@ -33,7 +35,7 @@ function App() {
   if (page === 'transactions') content = <TransactionsPage />
   if (page === 'agent-live') content = <AgentLivePage />
 
-  return <AgentStreamProvider><DashboardLayout page={page} onNavigate={navigate}>{content}</DashboardLayout></AgentStreamProvider>
+  return <AgentStreamProvider incidentId={incidentId}><DashboardLayout page={page} onNavigate={navigate}>{content}</DashboardLayout></AgentStreamProvider>
 }
 
 export default App

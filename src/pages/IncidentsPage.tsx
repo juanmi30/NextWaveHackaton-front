@@ -71,6 +71,7 @@ export function IncidentsPage() {
                   <td>{new Date(incident.detectedAt).toLocaleString()}</td>
                   <td>
                     <div className="row-actions">
+                      <a className="button tiny ghost" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>Analyze</a>
                       {incident.status === 'OPEN' ? <button className="button tiny secondary" type="button" disabled={busyId === incident.id} onClick={() => void update(incident.id, 'ack')}>Acknowledge</button> : null}
                       {incident.status !== 'RESOLVED' ? <button className="button tiny primary" type="button" disabled={busyId === incident.id} onClick={() => void update(incident.id, 'resolve')}>Resolve</button> : null}
                     </div>

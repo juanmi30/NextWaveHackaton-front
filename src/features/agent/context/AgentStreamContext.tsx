@@ -3,8 +3,8 @@ import { useAgentStream, type AgentStreamState } from '../hooks/useAgentStream'
 
 const AgentStreamContext = createContext<AgentStreamState | null>(null)
 
-export function AgentStreamProvider({ children }: { children: ReactNode }) {
-  const stream = useAgentStream()
+export function AgentStreamProvider({ children, incidentId = null }: { children: ReactNode; incidentId?: string | null }) {
+  const stream = useAgentStream(incidentId)
   return <AgentStreamContext.Provider value={stream}>{children}</AgentStreamContext.Provider>
 }
 

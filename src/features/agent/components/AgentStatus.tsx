@@ -1,6 +1,6 @@
 import type { AgentEvent } from '../types/agent.types'
 import type { DemoStatus } from '../types/demo.types'
-const statusByPhase = { OBSERVE: 'OBSERVING', ANALYZE: 'ANALYZING', DECIDE: 'DECIDING', ACT: 'ACTING', VERIFY: 'VERIFYING' } as const
+const statusByPhase = { OBSERVE: 'OBSERVING', ANALYZE: 'ANALYZING', DECIDE: 'DECIDING', ACT: 'ACTING', VERIFY: 'VERIFYING', INVESTIGATE: 'INVESTIGATING', DIAGNOSE: 'DIAGNOSING', RECOMMEND: 'RECOMMENDING', REPORT: 'REPORTING' } as const
 export function AgentStatus({ latestEvent, demoStatus }: { latestEvent: AgentEvent | null; demoStatus: DemoStatus }) {
   const status = demoStatus === 'RUNNING' && latestEvent ? statusByPhase[latestEvent.phase] : demoStatus
   const isRunning = demoStatus === 'RUNNING'

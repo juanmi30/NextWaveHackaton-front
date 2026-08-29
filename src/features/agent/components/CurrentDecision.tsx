@@ -1,21 +1,23 @@
-import type { AgentEvent } from '../types/agent.types'
+import type { AgentDiagnosis, AgentEvent } from '../types/agent.types'
+import { EMPTY_ROOT_CAUSE, formatConfidence, formatRate, formatRecurrence, formatUsdFromCents, getScopeEntries } from '../utils/diagnosisFormatting'
 
-export function CurrentDecision({ events }: { events: AgentEvent[] }) {
-  const snapshot = [...events].reverse().find((event) => event.route && event.metrics && event.decision)
-  const route = snapshot?.route
-  const metrics = snapshot?.metrics
-  const decision = snapshot?.decision
-
-  return <article className="panel current-decision">
-    <div className="panel-header"><div><p className="eyebrow">Current decision</p><h3>Route assessment</h3></div></div>
-    <dl className="decision-list">
-      <div><dt>Route</dt><dd>{route ? `${route.provider} / ${route.paymentMethod} / ${route.country} / ${route.issuer}` : '--'}</dd></div>
-      <div><dt>Risk Level</dt><dd>{decision?.riskLevel ?? '--'}</dd></div>
-      <div><dt>Current approval</dt><dd>{metrics?.currentApproval !== undefined ? `${metrics.currentApproval}%` : '--'}</dd></div>
-      <div><dt>24h baseline</dt><dd>{metrics?.baselineApproval !== undefined ? `${metrics.baselineApproval}%` : '--'}</dd></div>
-      <div><dt>Deviation</dt><dd>{metrics?.deviation !== undefined ? `${metrics.deviation}%` : '--'}</dd></div>
-      <div><dt>Confidence</dt><dd>{decision?.confidence !== undefined ? `${decision.confidence}%` : '--'}</dd></div>
-      <div className="decision-action"><dt>Action</dt><dd>{decision?.action ?? '--'}</dd></div>
-    </dl>
+function DiagnosisDetails({ diagnosis }: { diagnosis: AgentDiagnosis }) {
+  const isolated = diagnosis.rootCause ? getScopeEntries(diagnosis.rootCause.dimensions) : []
+  return <article className="panel current-decision diagnosis-panel">
+    <div className="panel-header"><div><p className="eyebrow">Agent diagnosis</p><h3>{diagnosis.evidenceStatus}</h3></div>{diagnosis.recommendation.requiresHumanApproval ? <span className="pill agent-warning">Human approval required</span> : null}</div>
+    <section className="diagnosis-section"><h4>Affected scope</h4><div className="scope-grid">{getScopeEntries(diagnosis.affectedScope).map(({ label, value }) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</div></section>
+    <section className="diagnosis-section"><h4>Root cause</h4><p className="root-cause-statement">{diagnosis.rootCause?.statement ?? EMPTY_ROOT_CAUSE}</p>{diagnosis.evidenceStatus === 'INSUFFICIENT' ? <p className="diagnosis-explanation">The agent found affected dimensions, but available evidence cannot distinguish a unique causal origin.</p> : null}<div className="root-cause-meta"><div><span>Isolated dimensions</span><div className="diagnosis-chips">{isolated.map(({ label, value }) => <i key={label}><small>{label}</small>{value}</i>)}</div></div><div><span>Confidence</span><strong>{formatConfidence(diagnosis.rootCause?.confidence)}</strong></div></div></section>
+    <section className="diagnosis-section"><h4>Impact</h4><div className="impact-grid"><div><span>Expected</span><strong>{formatRate(diagnosis.impact.expectedApprovalRate)}</strong></div><div><span>Observed</span><strong>{formatRate(diagnosis.impact.observedApprovalRate)}</strong></div><div><span>Loss / min</span><strong>{formatUsdFromCents(diagnosis.impact.lossPerMinuteCents)}</strong></div><div><span>Started</span><strong>{diagnosis.impact.startedAt ? new Date(diagnosis.impact.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</strong></div></div></section>
+    <section className="diagnosis-section"><h4>Evidence</h4><div className="evidence-list">{diagnosis.evidence.map((item, index) => <article key={`${item.statement}-${index}`}><strong>{item.statement}</strong>{item.metric ? <p>{item.metric}</p> : null}<div>{typeof item.baseline === 'number' ? <span>Baseline <b>{formatRate(item.baseline)}</b></span> : null}{typeof item.observed === 'number' ? <span>Observed <b>{formatRate(item.observed)}</b></span> : null}{typeof item.attempts === 'number' ? <span>Attempts <b>{item.attempts}</b></span> : null}</div></article>)}</div></section>
+    <section className="diagnosis-section compact"><h4>Recurrence</h4><p>{formatRecurrence(diagnosis.recurrence)}</p></section>
+    <section className="diagnosis-section recommendation-block"><div><span className="eyebrow">Recommended operator action</span><h4>{diagnosis.recommendation.action}</h4></div>{diagnosis.recommendation.requiresHumanApproval ? <span className="pill agent-warning">Human approval required</span> : null}</section>
+    <div className="summary-split"><section className="diagnosis-section compact"><h4>Operations summary</h4><p>{diagnosis.summaries.operations ?? '—'}</p></section><section className="diagnosis-section compact executive-summary"><h4>Executive summary</h4><p>{diagnosis.summaries.executive ?? '—'}</p></section></div>
   </article>
+}
+
+export function CurrentDecision({ events, diagnosis }: { events: AgentEvent[]; diagnosis?: AgentDiagnosis | null }) {
+  if (diagnosis) return <DiagnosisDetails diagnosis={diagnosis} />
+  const snapshot = [...events].reverse().find((event) => event.route && event.metrics && event.decision)
+  const route = snapshot?.route; const metrics = snapshot?.metrics; const decision = snapshot?.decision
+  return <article className="panel current-decision"><div className="panel-header"><div><p className="eyebrow">Current decision</p><h3>Route assessment</h3></div></div><dl className="decision-list"><div><dt>Route</dt><dd>{route ? `${route.provider} / ${route.paymentMethod} / ${route.country} / ${route.issuer}` : '--'}</dd></div><div><dt>Risk Level</dt><dd>{decision?.riskLevel ?? '--'}</dd></div><div><dt>Current approval</dt><dd>{metrics?.currentApproval !== undefined ? `${metrics.currentApproval}%` : '--'}</dd></div><div><dt>24h baseline</dt><dd>{metrics?.baselineApproval !== undefined ? `${metrics.baselineApproval}%` : '--'}</dd></div><div><dt>Deviation</dt><dd>{metrics?.deviation !== undefined ? `${metrics.deviation}%` : '--'}</dd></div><div><dt>Confidence</dt><dd>{decision?.confidence !== undefined ? `${decision.confidence}%` : '--'}</dd></div><div className="decision-action"><dt>Action</dt><dd>{decision?.action ?? '--'}</dd></div></dl></article>
 }

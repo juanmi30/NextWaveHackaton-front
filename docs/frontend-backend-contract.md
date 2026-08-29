@@ -15,14 +15,15 @@ The server should emit `agent.event` SSE messages whose JSON data maps directly 
 
 ```text
 event: agent.event
-data: {"id":"event-4","runId":"run-1","scenarioId":"approval-drop-colombia","timestamp":"2026-08-29T12:00:00.000Z","phase":"ANALYZE","status":"warning","title":"Significant degradation detected","summary":"Approval rate is below baseline.","route":{"provider":"dLocal","paymentMethod":"CARD","country":"CO","issuer":"Bancolombia"},"metrics":{"currentApproval":61,"baselineApproval":83,"deviation":-22,"transactionCount":120}}
+data: {"type":"phase_changed","phase":"DIAGNOSE","timestamp":"2026-08-29T12:00:00.000Z"}
 ```
 
 Required transport behavior:
 
-- Each `data` payload is one complete `AgentEvent`.
-- IDs must be unique within a run and timestamps must be ISO 8601.
-- Unknown or invalid phases/statuses should be rejected at the adapter boundary.
+- Public event names are `run_started`, `phase_changed`, `tool_started`, `tool_completed`, `diagnosis`, `run_completed`, and `error`.
+- The public lifecycle is `OBSERVE → INVESTIGATE → DIAGNOSE → RECOMMEND → REPORT`.
+- `SseAgentEventSource` maps public payloads into frontend domain events and stores diagnosis/tool activity separately.
+- Timestamps must be ISO 8601.
 - Reconnection, ordering and duplicate handling remain to be defined before implementing SSE.
 
 ## REST API
@@ -87,7 +88,7 @@ RoutingRecommendation
 UI
 ```
 
-The UI consumes domain state only. Replacing demo mode with live mode should require a new `AgentEventSource` implementation and source selection, without changes to visual components.
+The UI consumes domain state only. Live mode selects `SseAgentEventSource`; demo mode selects `MockAgentEventSource`. Set `VITE_AGENT_DATA_SOURCE=sse` and configure `VITE_API_URL` to enable live mode.
 
 ## Scenario contract
 

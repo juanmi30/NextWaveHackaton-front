@@ -11,23 +11,26 @@ import { RoutingRecommendation } from '../../routing/components/RoutingRecommend
 import { RoutingCandidateTable } from '../../routing/components/RoutingCandidateTable'
 import { DemoControls } from '../components/DemoControls'
 import { dataSources } from '../../../config/dataSources'
+import { AgentLiveErrorBoundary } from '../components/AgentLiveErrorBoundary'
 export function AgentLivePage() {
-  const { events, latestEvent, demoStatus } = useAgentStreamContext()
+  const { events, latestEvent, demoStatus, diagnosis, toolActivities, isSse, resetDemo } = useAgentStreamContext()
   const { watchedRoute } = useRouteHealth()
   const routing = useRoutingRecommendation()
   return <section className="page-content">
-    <div className="page-heading"><div><p className="eyebrow">Real-time observability</p><h2>Agent Live</h2><p>Follow the agent as it monitors, evaluates, and responds to route risk.</p></div><span className="data-source-label">Source: {dataSources.agent === 'mock' ? 'Demo' : 'Live API'}</span></div>
+    <div className="page-heading"><div><p className="eyebrow">Real-time observability</p><h2>Agent Live</h2><p>Follow observable lifecycle, tool activity, diagnosis, and recommendations.</p></div><span className="data-source-label">{dataSources.agent === 'mock' ? 'DEMO / MOCK' : 'LIVE BACKEND'}</span></div>
+    <AgentLiveErrorBoundary onReset={resetDemo}>
     <AgentStatus latestEvent={latestEvent} demoStatus={demoStatus} />
     <DemoControls />
-    <div className="route-live-grid"><RouteHealthLive route={watchedRoute} /><RiskEvolution /></div>
+    {!isSse ? <div className="route-live-grid"><RouteHealthLive route={watchedRoute} /><RiskEvolution /></div> : null}
     <div className="agent-live-grid">
-      <article className="panel"><div className="panel-header"><div><h3>Agent timeline</h3><p>{events.length} events in this run</p></div></div><AgentTimeline events={events} /></article>
-      <aside><CurrentDecision events={events} /></aside>
+      <article className="panel"><div className="panel-header"><div><h3>Agent timeline</h3><p>{events.length} events · {toolActivities.length} tools</p></div></div><AgentTimeline events={events} toolActivities={toolActivities} /></article>
+      <aside><CurrentDecision events={events} diagnosis={diagnosis} /></aside>
     </div>
-    <section className="routing-section">
+    {!isSse ? <section className="routing-section">
       <div className="routing-section-heading"><p className="eyebrow">Payment routing decision</p><h2>Alternative route evaluation</h2></div>
       <RoutingDecisionFlow recommendation={routing} source={watchedRoute} />
       <div className="routing-detail-grid"><RoutingRecommendation recommendation={routing} source={watchedRoute} /><RoutingCandidateTable candidates={routing.candidates} /></div>
-    </section>
+    </section> : null}
+    </AgentLiveErrorBoundary>
   </section>
 }
