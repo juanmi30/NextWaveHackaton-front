@@ -118,12 +118,7 @@ export function OverviewPage() {
           <h2>Route health at a glance</h2>
           <p>Compares the last 60 minutes against a 24-hour baseline.</p>
         </div>
-        <div className="actions">
-          <button className="button secondary" type="button" onClick={() => void runSeed()} disabled={Boolean(action)}>Seed demo</button>
-          <button className="button ghost" type="button" onClick={() => void runDetection()} disabled={Boolean(action)}>Run detection (debug)</button>
-          {liveMode ? <TrialByFire degradations={live.degradations} refreshedAt={live.refreshedAt} onChanged={live.refresh} /> : null}
-          <button className="button ghost" type="button" onClick={() => void refresh()} disabled={loading}>Refresh</button>
-        </div>
+        {liveMode ? <div className="actions"><TrialByFire triggerLabel="Demo tools" degradations={live.degradations} refreshedAt={live.refreshedAt} onChanged={live.refresh} demoTools={<section className="demo-tools-actions" aria-label="Development actions"><span>Manual fallbacks</span><div><button className="button tiny secondary" type="button" onClick={() => void runSeed()} disabled={Boolean(action)}>Seed demo</button><button className="button tiny ghost" type="button" onClick={() => void runDetection()} disabled={Boolean(action)}>Run detection</button><button className="button tiny ghost" type="button" onClick={() => void refresh()} disabled={loading}>Refresh now</button></div></section>} /></div> : null}
       </div>
 
       {action ? <div className="notice success-notice">{action}</div> : null}
