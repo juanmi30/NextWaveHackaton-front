@@ -10,7 +10,7 @@ export function formatScope(scope: AgentDiagnosis['affectedScope']): string[] {
 }
 export function formatRate(value: number | null): string { return typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : '—' }
 export function formatUsdFromCents(value: number | null): string { return typeof value === 'number' ? `$${(value / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—' }
-export function formatConfidence(value: number | undefined): string { return typeof value === 'number' ? `${(value * 100).toFixed(0)}%` : '—' }
+export function formatConfidence(value: number | null | undefined): string { return typeof value === 'number' ? `${(value * 100).toFixed(0)}%` : '—' }
 export function formatUnknownText(value: unknown): string {
   if (typeof value === 'string') return value
   if (value == null) return '—'

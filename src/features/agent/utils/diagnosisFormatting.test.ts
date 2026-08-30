@@ -15,6 +15,7 @@ test('formats structured root cause without rendering objects', () => {
 test('uses an explicit message when evidence is insufficient', () => {
   const rootCause = null
   assert.equal(rootCause ?? EMPTY_ROOT_CAUSE, 'Insufficient evidence to isolate root cause')
+  assert.equal(formatConfidence(null), '—')
 })
 
 test('presents response code classification and UNKNOWN retryability without inventing a soft decline', () => {

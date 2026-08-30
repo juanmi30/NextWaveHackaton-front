@@ -546,10 +546,11 @@ function IncidentSummary({ incident }: { incident: UnifiedIncident }) {
         <span>Actual approval <strong>{formatRate(incident.observedRate)}</strong></span>
         <span>Expected approval <strong>{formatRate(incident.baselineRate)}</strong></span>
         <span>Actual deterioration <strong>{typeof incident.dropPp === 'number' ? `${incident.dropPp.toFixed(1)} pp` : '—'}</strong></span>
-        <span>Estimated impact <strong>{formatMoney(incident.lossPerMinuteCents)}/min</strong></span>
+        <span>Payment volume at risk <strong>{formatMoney(incident.lossPerMinuteCents)}/min</strong></span>
         <span>Lost approvals <strong>{formatCount(incident.lostApprovals)}</strong></span>
         <span>Detector confidence <strong>{formatRate(incident.confidence)}</strong></span>
       </div>
+      <p className="unified-impact-explanation">Estimated from lost approvals × average payment value over the detection window.</p>
     </section>
   )
 }

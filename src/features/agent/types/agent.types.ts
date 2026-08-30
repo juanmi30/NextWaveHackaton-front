@@ -18,7 +18,7 @@ export interface AgentDiagnosis {
   recurrence: string | Record<string, unknown>
   recommendation: { action: string; requiresHumanApproval: boolean }
   summaries: { operations?: string; executive?: string }
-  confidenceAnalysis: { score: number; level: 'LOW' | 'MEDIUM' | 'HIGH'; factors: Array<{ code: 'OBSERVED_SAMPLE' | 'BASELINE_SAMPLE' | 'DROP_MAGNITUDE' | 'HEALTHY_SIBLINGS' | 'ROOT_CAUSE_ISOLATION'; effect: 'SUPPORTS' | 'LIMITS' | 'NEUTRAL'; statement: string }>; limitations: string[] }
+  confidenceAnalysis: { detectorConfidence: number | null; rootCauseConfidence: number | null; score: number; level: 'LOW' | 'MEDIUM' | 'HIGH'; factors: Array<{ code: 'OBSERVED_SAMPLE' | 'BASELINE_SAMPLE' | 'DROP_MAGNITUDE' | 'HEALTHY_SIBLINGS' | 'ROOT_CAUSE_ISOLATION'; effect: 'SUPPORTS' | 'LIMITS' | 'NEUTRAL'; statement: string }>; limitations: string[] }
   ruledOutHypotheses: Array<{ hypothesis: string; reason: string; controlScope: DiagnosticDimensions }>
   counterfactualImpact: { estimatedRecoverableApprovalsPerMinute: number | null; estimatedRecoverableApprovalsPerHour: number | null; estimatedRecoverableRevenuePerHourCents: number }
   diagnosisTrace: Array<{ order: number; type: 'AFFECTED_SCOPE' | 'HEALTHY_CONTROL' | 'ROOT_CAUSE' | 'INSUFFICIENT_EVIDENCE'; scope: DiagnosticDimensions; statement: string; baselineValue: number | null; observedValue: number | null; attempts: number | null }>

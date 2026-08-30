@@ -108,7 +108,7 @@ export function OverviewPage() {
   const approvalFlash = useValueFlash(summary?.approvalRate)
   const transactionFlash = useValueFlash(summary?.transactions)
   const freshness = useLiveFreshness(dashboardUpdatedAt, 2500, Boolean(error || live.error))
-  const totalLoss = incidents.reduce((total, incident) => total + incident.lossPerMinuteCents, 0)
+  const paymentVolumeAtRisk = incidents.reduce((total, incident) => total + incident.lossPerMinuteCents, 0)
 
   return (
     <section className="page-content">
@@ -129,7 +129,7 @@ export function OverviewPage() {
       <div className="payment-health-hero">
         <div><span>Payment health</span><strong>{loading ? '—' : `${(approvalValue * 100).toFixed(1)}%`}</strong><small title="Share of attempted payments approved in the current analytics window.">approval rate</small></div>
         <LiveIndicator state={freshness.state === 'DISCONNECTED' ? 'OFFLINE' : freshness.state} detail={freshness.label} />
-        <div className="hero-health-state"><strong>{summary?.state ?? 'NOT READY'}</strong><span>{summary?.incidents.open ?? 0} open · {totalLoss ? `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalLoss / 100)}/min` : 'no current loss'}</span></div>
+        <div className="hero-health-state"><strong>{summary?.state ?? 'NOT READY'}</strong><span>{summary?.incidents.open ?? 0} open · {paymentVolumeAtRisk ? `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(paymentVolumeAtRisk / 100)}/min at risk` : 'no payment volume currently at risk'}</span></div>
       </div>
 
       {liveMode ? <><LiveControlTower status={live.status} busy={live.busy} onStart={live.start} onStop={live.stop} />{summary?.state === 'NORMAL' && summary.incidents.open === 0 ? <div className="quiet-state"><strong>NORMAL</strong><span>Monitoring continuously · no meaningful anomalies detected</span><small>Detection runs: {summary.detection.total} · Quiet runs: {summary.detection.noAnomaly} · Open incidents: 0</small></div> : null}</> : null}
@@ -138,7 +138,7 @@ export function OverviewPage() {
         <MetricCard label="Transactions" value={loading ? '—' : String(summary?.transactions ?? 0)} detail="All ingested transactions" changed={transactionFlash.changed} direction="changed" />
         <MetricCard label="Approval rate" value={loading ? '—' : percent(summary?.approvalRate)} detail={`Failure ${percent(summary?.failureRate)}`} tone={summary?.state === 'NORMAL' ? 'success' : 'danger'} changed={approvalFlash.changed} direction={approvalFlash.direction === 'UP' ? 'up' : approvalFlash.direction === 'DOWN' ? 'down' : 'changed'} />
         <MetricCard label="Open incidents" value={loading ? '—' : String(summary?.incidents.open ?? 0)} detail={`${summary?.incidents.highCritical ?? 0} high / critical`} tone={(summary?.incidents.open ?? 0) > 0 ? 'warning' : 'default'} />
-        <MetricCard label="Estimated loss" value={loading ? '—' : `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalLoss / 100)}/min`} detail="Across loaded open incidents" tone={totalLoss > 0 ? 'danger' : 'default'} />
+        <MetricCard label="Payment volume at risk" value={loading ? '—' : `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(paymentVolumeAtRisk / 100)}/min`} detail="Estimated across loaded open incidents" tone={paymentVolumeAtRisk > 0 ? 'danger' : 'default'} />
         <MetricCard label="Detection runs" value={loading ? '—' : String(summary?.detection.total ?? 0)} detail={`${summary?.detection.noAnomaly ?? 0} quiet · ${summary?.detection.incidentsFound ?? 0} incidents`} tone={(summary?.detection.incidentsFound ?? 0) > 0 ? 'warning' : 'default'} />
       </div>
       <NewIncidentToast incident={newIncident} onClose={() => setNewIncident(null)} />

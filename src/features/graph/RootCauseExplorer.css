@@ -572,11 +572,18 @@
 }
 
 .unified-incident-metrics {
-  padding-bottom: 10px;
+  padding-bottom: 0;
 }
 
 .unified-incident-metrics span { background: #fff0f2; }
 .unified-incident-metrics strong { color: #9e3040; }
+
+.unified-impact-explanation {
+  margin: 0;
+  padding: 7px 12px 10px;
+  color: var(--muted);
+  font-size: 8px;
+}
 
 .unified-no-focus {
   display: grid;

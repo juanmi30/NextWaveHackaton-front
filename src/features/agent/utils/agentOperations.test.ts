@@ -6,7 +6,7 @@ import { mergeIncidentOperations, summarizeOperationStatuses } from './agentOper
 
 const incident = (id: string, loss: number, status: Incident['analysisStatus'], priorityRank?: number): Incident => ({ id, detectionRunId: 'run', anchorFingerprint: id, fingerprint: id, severity: 3, priorityRank, analysisStatus: status, status: 'OPEN', expectedApprovals: 0, actualApprovals: 0, lostApprovals: 0, averageTicketCents: 0, lossPerMinuteCents: loss, diagnoses: [], startedAt: '2026-01-01T00:00:00Z', detectedAt: '2026-01-01T00:00:00Z', lastSeenAt: '2026-01-01T00:00:00Z', resolvedAt: null })
 
-test('orders by backend priority and canonical financial loss fallback', () => {
+test('orders by backend priority and canonical payment-volume-at-risk fallback', () => {
   const values = [incident('low', 1000, 'QUEUED'), incident('high', 8000, 'QUEUED')].sort(compareIncidentPriority)
   assert.deepEqual(values.map((value) => value.id), ['high', 'low'])
   const ranked = [incident('rank-2', 9000, 'RUNNING', 2), incident('rank-1', 1000, 'RUNNING', 1)].sort(compareIncidentPriority)

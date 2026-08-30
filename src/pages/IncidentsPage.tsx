@@ -61,7 +61,7 @@ export function IncidentsPage() {
       <article className="panel panel-wide">
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Priority</th><th>Incident</th><th>Status</th><th>Approval</th><th>Impact</th><th>Detected</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Priority</th><th>Incident</th><th>Status</th><th>Approval</th><th title="Estimated from lost approvals × average payment value over the detection window.">Payment volume at risk</th><th>Detected</th><th>Actions</th></tr></thead>
             <tbody>
               {incidents.map((incident) => {
                 const analysisStatus = getIncidentAnalysisStatus(incident)
@@ -70,7 +70,7 @@ export function IncidentsPage() {
                   <td><strong>{incident.summaryOps ?? 'No operational summary'}</strong><span className="cell-subtitle">{incident.summaryExec ?? 'No executive summary'}</span></td>
                   <td><span className={`pill status-${incident.status.toLowerCase()}`}>{incident.status}</span></td>
                   <td>{incident.diagnoses?.[0] ? <>{percent(incident.diagnoses[0].observedRate)} <span className="muted">vs {percent(incident.diagnoses[0].baselineRate)}</span></> : <span className="muted">No diagnosis available</span>}</td>
-                  <td><strong>{money(incident.lossPerMinuteCents)}/min</strong><span className="cell-subtitle">{money(incident.lossPerMinuteCents * 60)}/hour</span></td>
+                  <td><strong>{money(incident.lossPerMinuteCents)}/min</strong><span className="cell-subtitle">{money(incident.lossPerMinuteCents * 60)}/hour projected</span></td>
                   <td>{new Date(incident.detectedAt).toLocaleString()}</td>
                   <td>
                     <div className="row-actions">
