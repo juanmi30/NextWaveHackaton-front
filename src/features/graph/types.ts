@@ -18,31 +18,42 @@ export type PredictionStatus =
 
 export type PredictionSignal = {
   feature: string
-  value: number
-  contribution: number
+  value?: number | null
+  contribution?: number | null
   effect:
     | 'INCREASES_RISK'
     | 'DECREASES_RISK'
 }
 
 export type PredictionEvidence = {
-  currentAttempts: number
-  baselineAttempts: number
-  bucketAttempts: number[]
-  sufficientEvidence: boolean
+  currentAttempts?: number
+  baselineAttempts?: number
+  bucketAttempts?: number[]
+  sufficientEvidence?: boolean
   reason?: string
 }
 
-export type PredictionFeatures = {
-  baselineApprovalRate: number
-  approvalDrop: number
-  approvalSlope: number
-  timeoutRate: number
-  timeoutSlope: number
-  errorRate: number
-  p95LatencyMs: number
-  latencySlope: number
-}
+export type PredictionFeatureValue =
+  | number
+  | null
+  | undefined
+
+/**
+ * The named fields document the current V1 contract. The index signature keeps
+ * future model features available to the UI without requiring a release for
+ * every new feature name.
+ */
+export type PredictionFeatures =
+  Record<string, PredictionFeatureValue> & {
+    baselineApprovalRate?: PredictionFeatureValue
+    approvalDrop?: PredictionFeatureValue
+    approvalSlope?: PredictionFeatureValue
+    timeoutRate?: PredictionFeatureValue
+    timeoutSlope?: PredictionFeatureValue
+    errorRate?: PredictionFeatureValue
+    p95LatencyMs?: PredictionFeatureValue
+    latencySlope?: PredictionFeatureValue
+  }
 
 export type FailureReasonSummary = {
   code: string
@@ -54,16 +65,16 @@ export type FailureReasonSummary = {
 }
 
 export type FailureContext = {
-  totalAttempts: number
-  totalFailures: number
-  failureRate: number
+  totalAttempts?: number
+  totalFailures?: number
+  failureRate?: number
 
-  actionableFailures: number
-  issuerSideFailures: number
-  limitedFailures: number
-  unknownFailures: number
+  actionableFailures?: number
+  issuerSideFailures?: number
+  limitedFailures?: number
+  unknownFailures?: number
 
-  topReasons: FailureReasonSummary[]
+  topReasons?: FailureReasonSummary[]
 }
 
 export type UnifiedIncident = {
