@@ -1,5 +1,5 @@
 import { api, withQuery } from '../../lib/api'
-import type { AnalyticsSummary, AnalyticsSummaryResponse, RiskAnalysis } from '../../types/domain'
+import type { AnalyticsBreakdown, AnalyticsSummary, DetectionRunResult } from '../../types/domain'
 
 export type RiskQuery = {
   groupBy?: 'merchant' | 'provider' | 'method' | 'country' | 'issuingBank' | 'route'
@@ -16,13 +16,12 @@ const DEFAULT_RISK_QUERY: RiskQuery = {
   minSampleSize: 10,
 }
 
-const mapAnalyticsSummary = (response: AnalyticsSummaryResponse): AnalyticsSummary => ({ transactionCount: response.transactions, approvalRate: response.approvalRate, failureRate: response.failureRate, openIncidentCount: response.incidents.open, highCriticalIncidentCount: response.incidents.highCritical })
-export const getAnalyticsSummary = async () => mapAnalyticsSummary(await api<AnalyticsSummaryResponse>('/api/analytics/summary'))
+export const getAnalyticsSummary = () => api<AnalyticsSummary>('/api/analytics/summary')
 
-export const getRiskAnalysis = (query: RiskQuery = DEFAULT_RISK_QUERY) =>
-  api<RiskAnalysis>(withQuery('/api/analytics/breakdown', { ...DEFAULT_RISK_QUERY, ...query }))
+export const getAnalyticsBreakdown = (query: RiskQuery = DEFAULT_RISK_QUERY) =>
+  api<AnalyticsBreakdown>(withQuery('/api/analytics/breakdown', { ...DEFAULT_RISK_QUERY, ...query }))
 
-export const detectRisk = () => api<{ incidentsCreated?: number }>('/api/detection/run', { method: 'POST' })
+export const detectRisk = () => api<DetectionRunResult>('/api/detection/run', { method: 'POST', body: JSON.stringify({}) })
 
 export const seedDemo = (reset = true) =>
   api<{ seeded: boolean; transactions: number; scenario: Record<string, string> }>(

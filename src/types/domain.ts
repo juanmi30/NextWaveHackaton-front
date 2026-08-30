@@ -1,4 +1,3 @@
-export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
 export type IncidentStatus = 'OPEN' | 'ACKNOWLEDGED' | 'RESOLVED'
 export type PaymentStatus = 'APPROVED' | 'DECLINED' | 'ERROR' | 'TIMEOUT'
 
@@ -10,78 +9,66 @@ export type Health = {
 }
 
 export type AnalyticsSummary = {
-  transactionCount: number
-  approvalRate: number
-  failureRate: number
-  openIncidentCount: number
-  highCriticalIncidentCount: number
-}
-export type AnalyticsSummaryResponse = {
+  window: { from: string; to: string; minutes: number }
   transactions: number
   approved: number
   approvalRate: number
   failureRate: number
+  volumeUsdCents: number
   incidents: { open: number; acknowledged: number; resolved: number; highCritical: number }
-  detection: unknown
-  state: unknown
+  detection: { total: number; noAnomaly: number; insufficientEvidence: number; incidentsFound: number; quietRatio: number }
+  state: 'NORMAL' | 'DEGRADED' | 'INCIDENT'
 }
 
-export type WindowMetrics = {
-  total: number
-  approved: number
-  declined: number
-  errors: number
-  timeouts: number
-  approvalRate: number
-  failureRate: number
-  p95LatencyMs: number | null
-  averageAmountCents: number
-}
-
-export type RiskItem = {
-  key: string
-  label: string
-  groupBy: string
+export type AnalyticsBreakdownRow = {
   dimensions: Record<string, string>
-  score: number
-  riskLevel: RiskLevel
-  confidence: number
-  current: WindowMetrics
-  baseline: WindowMetrics
-  approvalDrop: number
-  estimatedLossCents: number
-  recommendation: string
+  attempts: number
+  approved: number
+  approvalRate: number
+  baselineRate: number
+  baselineAttempts: number
+  hasBaseline: boolean
+  drop: number
+  volumeUsdCents: number
 }
-
-export type RiskAnalysis = {
-  config: {
-    groupBy: string
-    windowMinutes: number
-    baselineHours: number
-    minSampleSize: number
-  }
-  summary: {
-    transactionsAnalyzed: number
-    currentTransactions: number
-    baselineTransactions: number
-    entitiesAnalyzed: number
-    critical: number
-    high: number
-    medium: number
-  }
-  risks: RiskItem[]
+export type AnalyticsBreakdown = {
+  config: { groupBy: string; windowMinutes: number; baselineHours: number; minSampleSize: number }
+  windows: { baseline: { from: string; to: string }; current: { from: string; to: string } }
+  rows: AnalyticsBreakdownRow[]
 }
 
 export type Incident = {
   id: string
+  detectionRunId: string
+  anchorFingerprint: string
+  fingerprint: string
   summaryOps?: string | null
   summaryExec?: string | null
   severity: number
   status: IncidentStatus
+  expectedApprovals: number
+  actualApprovals: number
+  lostApprovals: number
+  averageTicketCents: number
   lossPerMinuteCents: number
-  diagnoses: Array<{ baselineRate?: number | null; observedRate?: number | null; dimensions?: Record<string, string | null>; evidence?: Array<Record<string, unknown>> }>
+  recommendation?: string | null
+  confidenceStatement?: string | null
+  diagnoses: Array<{ id: string; version: number; fingerprint: string; baselineRate?: number | null; observedRate?: number | null; baselineAttempts: number; observedAttempts: number; confidence: number; dimensionDepth: number; dimensions?: Record<string, string | null>; evidence?: Array<Record<string, unknown>>; sampleTransactionIds: string[]; createdAt: string }>
+  startedAt: string
   detectedAt: string
+  lastSeenAt: string
   resolvedAt: string | null
+}
+
+export type DetectionRunResult = {
+  runId: string
+  outcome: string
+  window: unknown
+  combosEvaluated: number
+  slicesWithSample: number
+  candidates: unknown[]
+  incidents: Incident[]
+  autoResolved: number
 }
 
 export type Transaction = {

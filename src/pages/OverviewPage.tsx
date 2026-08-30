@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { MetricCard } from '../components/dashboard/MetricCard'
-import { RiskTable } from '../components/dashboard/RiskTable'
-import { detectRisk, getAnalyticsSummary, getRiskAnalysis, seedDemo } from '../features/dashboard/dashboardApi'
+import { BreakdownTable } from '../components/dashboard/BreakdownTable'
+import { detectRisk, getAnalyticsBreakdown, getAnalyticsSummary, seedDemo } from '../features/dashboard/dashboardApi'
 import { getIncidents } from '../features/incidents/incidentsApi'
-import type { AnalyticsSummary, Incident, RiskAnalysis } from '../types/domain'
+import type { AnalyticsBreakdown, AnalyticsSummary, Incident } from '../types/domain'
 import { AgentSummaryCard } from '../features/agent/components/AgentSummaryCard'
 import { RouteHealthTable } from '../features/routes/components/RouteHealthTable'
 import { useRouteHealth } from '../features/routes/hooks/useRouteHealth'
@@ -14,7 +14,7 @@ const percent = (value?: number | null) => typeof value === 'number' ? `${(value
 export function OverviewPage() {
   const { routes, watchedRouteId } = useRouteHealth()
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
-  const [analysis, setAnalysis] = useState<RiskAnalysis | null>(null)
+  const [breakdown, setBreakdown] = useState<AnalyticsBreakdown | null>(null)
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [loading, setLoading] = useState(true)
   const [action, setAction] = useState<string | null>(null)
@@ -25,11 +25,11 @@ export function OverviewPage() {
     try {
       const [summaryData, analysisData, incidentData] = await Promise.all([
         getAnalyticsSummary(),
-        getRiskAnalysis(),
+        getAnalyticsBreakdown(),
         getIncidents('OPEN', 5),
       ])
       setSummary(summaryData)
-      setAnalysis(analysisData)
+      setBreakdown(analysisData)
       setIncidents(incidentData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load dashboard')
@@ -60,7 +60,7 @@ export function OverviewPage() {
     setError(null)
     try {
       const result = await detectRisk()
-      setAction(typeof result.incidentsCreated === 'number' ? `${result.incidentsCreated} incident(s) created` : 'Detection completed')
+      setAction(`${result.incidents.length} incident(s) detected · ${result.outcome}`)
       await refresh()
       window.setTimeout(() => setAction(null), 1800)
     } catch (err) {
@@ -88,10 +88,10 @@ export function OverviewPage() {
       {error ? <div className="notice error-notice">{error}</div> : null}
 
       <div className="metric-grid">
-        <MetricCard label="Transactions" value={loading ? '—' : String(summary?.transactionCount ?? 0)} detail="All ingested transactions" />
+        <MetricCard label="Transactions" value={loading ? '—' : String(summary?.transactions ?? 0)} detail="All ingested transactions" />
         <MetricCard label="Approval rate" value={loading ? '—' : percent(summary?.approvalRate)} detail={`Failure ${percent(summary?.failureRate)}`} tone="success" />
-        <MetricCard label="Open incidents" value={loading ? '—' : String(summary?.openIncidentCount ?? 0)} detail={`${summary?.highCriticalIncidentCount ?? 0} high / critical`} tone={(summary?.openIncidentCount ?? 0) > 0 ? 'warning' : 'default'} />
-        <MetricCard label="Critical routes" value={loading ? '—' : String(analysis?.summary.critical ?? 0)} detail={`${analysis?.summary.high ?? 0} high risk`} tone={(analysis?.summary.critical ?? 0) > 0 ? 'danger' : 'default'} />
+        <MetricCard label="Open incidents" value={loading ? '—' : String(summary?.incidents.open ?? 0)} detail={`${summary?.incidents.highCritical ?? 0} high / critical`} tone={(summary?.incidents.open ?? 0) > 0 ? 'warning' : 'default'} />
+        <MetricCard label="Detection runs" value={loading ? '—' : String(summary?.detection.total ?? 0)} detail={`${summary?.detection.noAnomaly ?? 0} quiet · ${summary?.detection.incidentsFound ?? 0} incidents`} tone={(summary?.detection.incidentsFound ?? 0) > 0 ? 'warning' : 'default'} />
       </div>
 
       <AgentSummaryCard />
@@ -106,12 +106,12 @@ export function OverviewPage() {
         <article className="panel panel-wide">
           <div className="panel-header">
             <div>
-              <h3>Risk analysis</h3>
-              <p>{analysis?.summary.transactionsAnalyzed ?? 0} transactions analyzed</p>
+              <h3>Analytics breakdown</h3>
+              <p>{breakdown?.rows.length ?? 0} breakdown rows</p>
             </div>
             <span className="pill neutral">groupBy: route</span>
           </div>
-          {loading ? <div className="empty-state">Loading risk analysis…</div> : <RiskTable risks={analysis?.risks ?? []} />}
+          {loading ? <div className="empty-state">Loading analytics breakdown…</div> : <BreakdownTable rows={breakdown?.rows ?? []} />}
         </article>
 
         <article className="panel">
