@@ -20,7 +20,7 @@ export function AgentOperationsQueue({ incidents, states, selectedIncidentId, mo
       const dimensions = incident.diagnoses[0]?.dimensions
       const route = dimensions ? [dimensions.merchant, dimensions.provider, dimensions.country, dimensions.issuingBank].filter(Boolean).join(' · ') : incident.summaryOps
       return <article className={`agent-operation-item state-${status.toLowerCase()} ${selectedIncidentId === incident.id ? 'selected' : ''}`} key={incident.id}><button type="button" onClick={() => onSelect(incident.id)} aria-pressed={selectedIncidentId === incident.id}>
-        <div><span>CONFIRMED · {incident.priorityRank ? `Priority #${incident.priorityRank}` : 'Priority pending'}</span><strong>{route || 'Payment incident'}</strong><b>{money(incident.lossPerMinuteCents)}/min</b></div>
+        <div><span>CONFIRMED · {incident.priorityRank ? `Priority #${incident.priorityRank}` : 'Priority pending'}{selectedIncidentId === incident.id ? ' · SELECTED' : ''}</span><strong>{route || 'Payment incident'}</strong><b>{money(incident.lossPerMinuteCents)}/min</b></div>
         <div className="agent-operation-status"><strong>{label}</strong><span>{detail}</span>{state?.lastEventAt ? <time dateTime={state.lastEventAt}>Updated {new Date(state.lastEventAt).toLocaleTimeString()}</time> : null}</div>
       </button></article>
     })}</div>}
