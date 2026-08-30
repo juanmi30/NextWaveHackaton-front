@@ -5,127 +5,235 @@ export type ExplorerDimension =
   | 'country'
   | 'issuingBank'
 
-export type ExplorerHealth =
-  | 'SELECTED'
-  | 'HEALTHY'
-  | 'DEGRADED'
+export type OperationalState =
+  | 'INCIDENT'
+  | 'HIGH_RISK'
+  | 'WATCH'
+  | 'LOW_RISK'
   | 'INCONCLUSIVE'
 
-export type ExplorerGraphNodeType =
-  | 'traffic'
-  | 'dimension'
-  | 'rootCause'
-  | 'evidence'
+export type PredictionStatus =
+  | 'PREDICTION'
+  | 'INSUFFICIENT_EVIDENCE'
 
-export type ExplorerGraphNodeData = {
+export type PredictionSignal = {
+  feature: string
+  value: number
+  contribution: number
+  effect:
+    | 'INCREASES_RISK'
+    | 'DECREASES_RISK'
+}
+
+export type PredictionEvidence = {
+  currentAttempts: number
+  baselineAttempts: number
+  bucketAttempts: number[]
+  sufficientEvidence: boolean
+  reason?: string
+}
+
+export type PredictionFeatures = {
+  baselineApprovalRate: number
+  approvalDrop: number
+  approvalSlope: number
+  timeoutRate: number
+  timeoutSlope: number
+  errorRate: number
+  p95LatencyMs: number
+  latencySlope: number
+}
+
+export type FailureReasonSummary = {
+  code: string
+  category: string
+  actionability: string
+  retryability: string
+  count: number
+  share: number
+}
+
+export type FailureContext = {
+  totalAttempts: number
+  totalFailures: number
+  failureRate: number
+
+  actionableFailures: number
+  issuerSideFailures: number
+  limitedFailures: number
+  unknownFailures: number
+
+  topReasons: FailureReasonSummary[]
+}
+
+export type UnifiedIncident = {
+  id: string
+  status: string
+  severity: number
+
+  priorityScore: number | null
+  priorityRank: number | null
+
+  lossPerMinuteCents: number
+  lostApprovals: number
+
+  summaryOps: string | null
+  recommendation: string | null
+
+  dimensions: Record<string, string>
+
+  baselineRate: number | null
+  observedRate: number | null
+
+  dropPp: number | null
+  confidence: number | null
+}
+
+export type UnifiedGraphNodeData = {
   label: string
-  dimension?: ExplorerDimension | 'failureReason'
-  value?: string | null
-  selected?: boolean
-  health?: ExplorerHealth
+
+  dimension?: ExplorerDimension
+  value?: string
 
   segment?: Record<string, string>
-  dimensions?: Record<string, string>
 
-  baselineRate?: number | null
-  observedRate?: number | null
+  selected?: boolean
+  operationalState?: OperationalState
+  predictionStatus?: PredictionStatus
 
-  deltaPp?: number | null
+  riskLevel?:
+    | 'LOW'
+    | 'WATCH'
+    | 'HIGH'
+    | null
 
-  drop?: number | null
-  dropPp?: number | null
+  failureProbability?:
+    | number
+    | null
 
-  attempts?: number | null
-  confidence?: number | null
-  zScore?: number | null
+  failureProbabilityPercent?:
+    | number
+    | null
 
-  baselineAttempts?: number | null
-  baselineSource?: string
+  elevatedRisk?: boolean
 
-  lostApprovals?: number | null
-  lossPerMinuteCents?: number | null
+  predictionHorizonMinutes?:
+    | number
+    | null
 
-  difference?: number | null
+  decisionThreshold?:
+    | number
+    | null
+
+  model?: {
+    type: string
+    version: string
+  } | null
+
+  features?:
+    | PredictionFeatures
+    | null
+
+  signals?: PredictionSignal[]
+
+  evidence?: PredictionEvidence
+
+  failureContext?: FailureContext
+
+  approvalDropPp?:
+    | number
+    | null
+
+  incidents?: UnifiedIncident[]
+
+  hasActiveIncident?: boolean
+
+  focusIncident?:
+    | UnifiedIncident
+    | null
+
+  activeRoutes?: number
+  activeIncidents?: number
 }
 
-export type ExplorerGraphNode = {
+export type UnifiedGraphNode = {
   id: string
-  type: ExplorerGraphNodeType
-  data: ExplorerGraphNodeData
+
+  type:
+    | 'traffic'
+    | 'dimension'
+    | 'routeStatus'
+
+  data: UnifiedGraphNodeData
 }
 
-export type ExplorerGraphEdge = {
+export type UnifiedGraphEdge = {
   id: string
   source: string
   target: string
+
   type:
     | 'selected'
     | 'alternative'
-    | 'diagnostic_evidence'
-    | 'flow'
 }
 
-export type ExplorerLevel = {
+export type UnifiedGraphLevel = {
   dimension: ExplorerDimension
   selectedValue: string
-  parentFilters: Record<string, string>
+
+  parentFilters:
+    Record<string, string>
+
   totalSiblings: number
   returnedSiblings: number
   alternativesTruncated: number
 }
 
-export type IncidentExplorerGraph = {
-  mode: 'explorer'
+export type UnifiedGraphResponse = {
+  mode: 'unified'
 
-  incidentId: string
+  generatedAt: string
 
-  status:
-    | 'OPEN'
-    | 'ACKNOWLEDGED'
-    | 'RESOLVED'
+  focus: {
+    source:
+      | 'INCIDENT'
+      | 'PREDICTION'
+      | 'TRAFFIC'
 
-  severity: number
+    requestedIncidentId:
+      | string
+      | null
 
-  detectionRun: {
-    id: string
+    incidentScope:
+      | Record<string, string>
+      | null
 
-    window: {
-      from: string
-      to: string
-    }
+    selectedFlow:
+      Record<string, string>
 
-    thresholds: {
-      minSampleSize: number
-      minZScore: number
-      minConfidence: number
-      minDrop: number
-    }
+    selectedFlowSource: string
+
+    selectedFlowAttempts: number
+  } | null
+
+  summary: {
+    activeRoutes: number
+    predictions: number
+    insufficientEvidence: number
+
+    highRiskRoutes: number
+    watchRoutes: number
+    lowRiskRoutes: number
+
+    activeIncidents: number
   }
 
-  diagnosis: {
-    id: string
-    version: number
-    fingerprint: string
+  explorationOrder?:
+    ExplorerDimension[]
 
-    dimensions: Record<string, string>
+  levels: UnifiedGraphLevel[]
 
-    dimensionDepth: number
+  nodes: UnifiedGraphNode[]
 
-    baselineRate: number
-    observedRate: number
-    confidence: number
-  }
-
-  rootCause: {
-    label: string
-    dimensions: Record<string, string>
-  }
-
-  explorationOrder: ExplorerDimension[]
-
-  levels: ExplorerLevel[]
-
-  nodes: ExplorerGraphNode[]
-
-  edges: ExplorerGraphEdge[]
+  edges: UnifiedGraphEdge[]
 }

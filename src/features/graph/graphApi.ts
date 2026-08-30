@@ -1,9 +1,24 @@
-import { api } from '../../lib/api'
-import type { IncidentExplorerGraph } from './types'
+import {
+  api,
+  withQuery,
+} from '../../lib/api'
 
-export const getIncidentExplorerGraph = (
-  incidentId: string,
-) =>
-  api<IncidentExplorerGraph>(
-    `/api/incidents/${encodeURIComponent(incidentId)}/graph/explorer`,
+import type {
+  UnifiedGraphResponse,
+} from './types'
+
+export function getUnifiedGraph(
+  incidentId?: string | null,
+) {
+  const path = withQuery(
+    '/api/graph/unified',
+    {
+      incidentId:
+        incidentId ?? undefined,
+    },
   )
+
+  return api<UnifiedGraphResponse>(
+    path,
+  )
+}

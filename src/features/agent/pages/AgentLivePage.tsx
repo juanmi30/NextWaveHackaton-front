@@ -47,9 +47,7 @@ export function AgentLivePage() {
 
       <DemoControls />
 
-      {incidentId ? (
-        <RootCauseExplorer incidentId={incidentId} />
-      ) : null}
+      <RootCauseExplorer incidentId={incidentId} />
 
       {!isSse ? (
         <div className="route-live-grid">
