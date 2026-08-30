@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "node --test src/features/agent/services/sseAgentEventSource.test.ts src/features/agent/utils/diagnosisFormatting.test.ts src/features/agent/utils/agentOperations.test.ts src/features/agent/utils/preventiveWatch.test.ts",
+    "test": "node --test src/features/agent/services/sseAgentEventSource.test.ts src/features/agent/utils/diagnosisFormatting.test.ts src/features/agent/utils/agentOperations.test.ts src/features/agent/utils/preventiveWatch.test.ts src/features/graph/graphState.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -17,12 +17,11 @@ export type PredictionStatus =
   | 'INSUFFICIENT_EVIDENCE'
 
 export type PredictionSignal = {
-  feature: string
+  feature?: string
   value?: number | null
   contribution?: number | null
-  effect:
-    | 'INCREASES_RISK'
-    | 'DECREASES_RISK'
+  effect?: string | null
+  [key: string]: unknown
 }
 
 export type PredictionEvidence = {
@@ -35,13 +34,15 @@ export type PredictionEvidence = {
 
 export type PredictionFeatureValue =
   | number
+  | string
+  | boolean
   | null
   | undefined
 
 /**
- * The named fields document the current V1 contract. The index signature keeps
- * future model features available to the UI without requiring a release for
- * every new feature name.
+ * The named fields document the original V1 contract. The index signature
+ * keeps numeric, categorical, and boolean V2 features available without
+ * requiring a frontend release for every new feature name.
  */
 export type PredictionFeatures =
   Record<string, PredictionFeatureValue> & {
@@ -56,12 +57,13 @@ export type PredictionFeatures =
   }
 
 export type FailureReasonSummary = {
-  code: string
-  category: string
-  actionability: string
-  retryability: string
-  count: number
-  share: number
+  code?: string
+  category?: string
+  actionability?: string
+  retryability?: string
+  count?: number
+  share?: number
+  [key: string]: unknown
 }
 
 export type FailureContext = {
@@ -75,6 +77,7 @@ export type FailureContext = {
   unknownFailures?: number
 
   topReasons?: FailureReasonSummary[]
+  [key: string]: unknown
 }
 
 export type UnifiedIncident = {
@@ -137,8 +140,9 @@ export type UnifiedGraphNodeData = {
     | null
 
   model?: {
-    type: string
-    version: string
+    type?: string
+    version?: string
+    [key: string]: unknown
   } | null
 
   features?:
@@ -165,6 +169,8 @@ export type UnifiedGraphNodeData = {
 
   activeRoutes?: number
   activeIncidents?: number
+
+  [key: string]: unknown
 }
 
 export type UnifiedGraphNode = {

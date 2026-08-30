@@ -5,6 +5,16 @@ import {
 } from 'react'
 
 import { getUnifiedGraph } from './graphApi'
+import {
+  getGraphCapabilities,
+  getPredictionState as predictionState,
+  hasIncidentOverlay as hasIncident,
+  initialFocusMode,
+  resolveGraphViews,
+} from './graphState'
+import type {
+  GraphFocusMode,
+} from './graphState'
 import type {
   ExplorerDimension,
   FailureContext,
@@ -27,11 +37,9 @@ const LEVEL_GAP = 205
 const SIBLING_GAP = 286
 const TOP_PADDING = 30
 
-type FocusMode = 'predictive' | 'incident'
-
-type GraphViews = {
-  predictive: UnifiedGraphResponse | null
-  incident: UnifiedGraphResponse | null
+type LoadedGraphResponses = {
+  defaultGraph: UnifiedGraphResponse | null
+  requestedIncidentGraph: UnifiedGraphResponse | null
 }
 
 type PositionedNode = UnifiedGraphNode & {
@@ -133,25 +141,6 @@ function probabilityPercent(data: UnifiedGraphNodeData) {
   return null
 }
 
-function predictionState(data: UnifiedGraphNodeData): OperationalState {
-  if (
-    data.predictionStatus === 'INSUFFICIENT_EVIDENCE' ||
-    data.evidence?.sufficientEvidence === false
-  ) {
-    return 'INCONCLUSIVE'
-  }
-
-  if (data.riskLevel === 'HIGH') return 'HIGH_RISK'
-  if (data.riskLevel === 'WATCH') return 'WATCH'
-  if (data.riskLevel === 'LOW') return 'LOW_RISK'
-
-  if (data.operationalState && data.operationalState !== 'INCIDENT') {
-    return data.operationalState
-  }
-
-  return 'INCONCLUSIVE'
-}
-
 function predictionLabel(state: OperationalState) {
   switch (state) {
     case 'HIGH_RISK':
@@ -181,10 +170,6 @@ function stateClass(state: OperationalState) {
 function activeIncidents(data: UnifiedGraphNodeData) {
   const incidents = data.incidents ?? []
   return incidents.filter((incident) => incident.status !== 'RESOLVED')
-}
-
-function hasIncident(data: UnifiedGraphNodeData) {
-  return data.hasActiveIncident === true || activeIncidents(data).length > 0
 }
 
 function formatEvidenceReason(reason: string | undefined) {
@@ -217,7 +202,7 @@ function featureValue(
 function formatSignalValue(signal: PredictionSignal) {
   if (typeof signal.value !== 'number') return null
 
-  const normalized = toSnakeCase(signal.feature)
+  const normalized = toSnakeCase(signal.feature ?? '')
   if (normalized.endsWith('_rate') || normalized.includes('approval')) {
     return formatRate(signal.value)
   }
@@ -226,6 +211,30 @@ function formatSignalValue(signal: PredictionSignal) {
   }
   return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
     .format(signal.value)
+}
+
+function formatFeatureValue(
+  name: string,
+  value: Exclude<PredictionFeatures[string], null | undefined>,
+) {
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+  if (typeof value === 'string') return value
+
+  const normalized = toSnakeCase(name)
+  if (
+    normalized.endsWith('_rate') ||
+    normalized.includes('approval') ||
+    normalized.endsWith('_drop')
+  ) {
+    return formatRate(value)
+  }
+  if (normalized.includes('latency') || normalized.endsWith('_ms')) {
+    return `${Math.round(value)} ms`
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 3,
+  }).format(value)
 }
 
 function formatSegment(
@@ -353,7 +362,7 @@ function GraphNodeCard({ node }: { node: PositionedNode }) {
         <span className="unified-kicker">Unified payment view</span>
         <strong>ALL ACTIVE PAYMENT TRAFFIC</strong>
         <small>
-          {node.data.activeRoutes ?? 0} active routes · {node.data.activeIncidents ?? 0} incidents
+          {node.data.activeRoutes ?? 0} prediction-eligible routes · {node.data.activeIncidents ?? 0} incidents
         </small>
       </div>
     )
@@ -368,7 +377,7 @@ function GraphNodeCard({ node }: { node: PositionedNode }) {
       <div className="unified-node-heading">
         <span className="unified-kicker">
           {node.type === 'routeStatus'
-            ? 'Selected full route'
+            ? hasIncident(node.data) ? 'Confirmed incident route' : 'Selected full route'
             : dimensionLabels[node.data.dimension ?? 'merchant']}
         </span>
       </div>
@@ -436,15 +445,17 @@ function ModelSignals({ signals }: { signals?: PredictionSignal[] }) {
   return (
     <div className="unified-driver-list">
       {topSignals.map((signal, index) => {
+        const feature = signal.feature ?? 'unknown_feature'
         const increases = signal.effect === 'INCREASES_RISK'
+        const decreases = signal.effect === 'DECREASES_RISK'
         const value = formatSignalValue(signal)
         return (
-          <div key={`${signal.feature}-${index}`}>
-            <span className={increases ? 'driver-up' : 'driver-down'} aria-hidden="true">
-              {increases ? '↑' : '↓'}
+          <div key={`${feature}-${index}`}>
+            <span className={increases ? 'driver-up' : decreases ? 'driver-down' : 'driver-neutral'} aria-hidden="true">
+              {increases ? '↑' : decreases ? '↓' : '↔'}
             </span>
             <span>
-              <strong>{humanizeFeatureName(signal.feature)}</strong>
+              <strong>{humanizeFeatureName(feature)}</strong>
               {value ? <small>{value}</small> : null}
             </span>
             <b>{typeof signal.contribution === 'number'
@@ -454,6 +465,29 @@ function ModelSignals({ signals }: { signals?: PredictionSignal[] }) {
         )
       })}
     </div>
+  )
+}
+
+function FeatureSnapshot({ features }: { features?: PredictionFeatures | null }) {
+  const entries = Object.entries(features ?? {})
+    .filter((entry): entry is [string, Exclude<PredictionFeatures[string], null | undefined>] =>
+      entry[1] !== null && entry[1] !== undefined,
+    )
+
+  if (entries.length === 0) return null
+
+  return (
+    <details className="unified-feature-snapshot">
+      <summary>Feature snapshot · {entries.length}</summary>
+      <div>
+        {entries.slice(0, 8).map(([name, value]) => (
+          <span key={name}>
+            <small>{humanizeFeatureName(name)}</small>
+            <strong>{formatFeatureValue(name, value)}</strong>
+          </span>
+        ))}
+      </div>
+    </details>
   )
 }
 
@@ -482,11 +516,11 @@ function FailureContextSummary({ context }: { context?: FailureContext }) {
 
       {reasons.length > 0 ? (
         <div className="unified-reasons">
-          {reasons.map((reason) => (
-            <div key={`${reason.code}-${reason.category}`}>
-              <strong>{formatRate(reason.share, 0)} {humanizeFeatureName(reason.code)}</strong>
-              <span>{humanizeFeatureName(reason.category)} · {humanizeFeatureName(reason.actionability)}</span>
-              <small>{reason.count} failures · {humanizeFeatureName(reason.retryability)} retryability</small>
+          {reasons.map((reason, index) => (
+            <div key={`${reason.code ?? 'reason'}-${reason.category ?? index}`}>
+              <strong>{formatRate(reason.share, 0)} {humanizeFeatureName(reason.code ?? 'unknown_reason')}</strong>
+              <span>{humanizeFeatureName(reason.category ?? 'unknown_category')} · {humanizeFeatureName(reason.actionability ?? 'unknown_actionability')}</span>
+              <small>{formatCount(reason.count)} failures · {humanizeFeatureName(reason.retryability ?? 'unknown')} retryability</small>
             </div>
           ))}
         </div>
@@ -532,7 +566,7 @@ function PredictivePipeline({ data }: { data: UnifiedGraphNodeData }) {
     ? data.approvalDropPp
     : featureValue(data.features, 'approvalDrop', 'approval_drop')
   const latency = featureValue(data.features, 'p95LatencyMs', 'p95_latency_ms')
-  const modelName = data.model
+  const modelName = data.model?.type
     ? `${humanizeFeatureName(data.model.type)}${data.model.version ? ` ${data.model.version}` : ''}`
     : 'Model not returned'
 
@@ -567,6 +601,7 @@ function PredictivePipeline({ data }: { data: UnifiedGraphNodeData }) {
           <span>03 · Model</span>
           <strong>{modelName}</strong>
           <ModelSignals signals={data.signals} />
+          <FeatureSnapshot features={data.features} />
         </div>
 
         <i aria-hidden="true">→</i>
@@ -632,8 +667,11 @@ function SelectedRouteInspector({
 }
 
 export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }) {
-  const [views, setViews] = useState<GraphViews>({ predictive: null, incident: null })
-  const [focusMode, setFocusMode] = useState<FocusMode>(incidentId ? 'incident' : 'predictive')
+  const [responses, setResponses] = useState<LoadedGraphResponses>({
+    defaultGraph: null,
+    requestedIncidentGraph: null,
+  })
+  const [focusMode, setFocusMode] = useState<GraphFocusMode>(incidentId ? 'incident' : 'predictive')
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -647,15 +685,17 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
     void Promise.allSettled(requests).then((results) => {
       if (cancelled) return
 
-      const predictive = results[0]?.status === 'fulfilled' ? results[0].value : null
-      const incident = results[1]?.status === 'fulfilled' ? results[1].value : null
-      setViews({ predictive, incident })
+      const defaultGraph = results[0]?.status === 'fulfilled' ? results[0].value : null
+      const requestedIncidentGraph = results[1]?.status === 'fulfilled' ? results[1].value : null
+      const resolvedViews = resolveGraphViews(defaultGraph, requestedIncidentGraph)
+
+      setResponses({ defaultGraph, requestedIncidentGraph })
       setError(null)
       setLoadedRequestKey(incidentId ?? 'predictive')
 
-      setFocusMode(incidentId && incident ? 'incident' : 'predictive')
+      setFocusMode(initialFocusMode(incidentId, resolvedViews))
 
-      if (!predictive && !incident) {
+      if (!defaultGraph && !requestedIncidentGraph) {
         const reason = results.find((result) => result.status === 'rejected')
         setError(
           reason?.status === 'rejected' && reason.reason instanceof Error
@@ -668,9 +708,17 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
     return () => { cancelled = true }
   }, [incidentId])
 
+  const views = useMemo(
+    () => resolveGraphViews(
+      responses.defaultGraph,
+      responses.requestedIncidentGraph,
+    ),
+    [responses],
+  )
+
   const graph = focusMode === 'incident'
-    ? views.incident ?? views.predictive
-    : views.predictive ?? views.incident
+    ? views.incident ?? views.predictive ?? responses.defaultGraph
+    : views.predictive ?? views.incident ?? responses.defaultGraph
 
   const layout = useMemo(() => graph ? buildLayout(graph) : null, [graph])
   const positions = useMemo(() => {
@@ -705,10 +753,8 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
     )
   }
 
-  const predictiveAvailable = Boolean(
-    views.predictive &&
-    (views.predictive.summary.predictions > 0 || views.predictive.focus?.source === 'PREDICTION'),
-  )
+  const capabilities = getGraphCapabilities(graph)
+  const predictiveAvailable = Boolean(views.predictive)
   const incidentAvailable = Boolean(views.incident)
 
   return (
@@ -764,26 +810,33 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
         <div><span>Inconclusive</span><strong>{graph.summary.insufficientEvidence}</strong></div>
       </div>
 
-      {selectedNode ? <SelectedRouteInspector node={selectedNode} graph={graph} /> : (
+      {selectedNode && !capabilities.isTrulyEmpty ? <SelectedRouteInspector node={selectedNode} graph={graph} /> : (
         <div className="unified-no-focus">
-          <strong>{focusMode === 'predictive' ? 'No predictive routes in the active window.' : 'No incident route is available for this focus.'}</strong>
+          <strong>{capabilities.isTrulyEmpty
+            ? 'No incident or predictive route is available.'
+            : focusMode === 'predictive'
+              ? 'No predictive route is available in the active window.'
+              : 'No incident route is available for this focus.'}</strong>
           <span>
-            Traffic may be outside the recent prediction window. Confirmed incidents remain
-            separate and can still be inspected when an incident focus is available.
+            {capabilities.isTrulyEmpty
+              ? 'The backend returned only the payment-traffic root with no route topology.'
+              : 'Traffic may be outside the recent prediction window. Confirmed incidents remain independently inspectable.'}
           </span>
         </div>
       )}
 
-      <div className="unified-topology-heading">
+      {!capabilities.isTrulyEmpty ? <div className="unified-topology-heading">
         <div>
           <span className="unified-kicker">Payment topology</span>
-          <strong>All active payment routes</strong>
+          <strong>{capabilities.hasIncidentTopology
+            ? 'Confirmed incident route topology'
+            : 'Prediction-eligible route topology'}</strong>
         </div>
-        <small><b>{graph.summary.activeRoutes}</b> active routes · Click a node to inspect its segment</small>
-      </div>
+        <small><b>{graph.summary.activeRoutes}</b> prediction-eligible routes with recent traffic · Click a node to inspect</small>
+      </div> : null}
 
-      <div className="unified-scroll">
-        <div className={`unified-canvas ${graph.summary.activeRoutes === 0 ? 'unified-canvas-empty' : ''}`} style={{ width: layout.width, height: graph.summary.activeRoutes === 0 ? Math.max(340, layout.height) : layout.height }}>
+      {!capabilities.isTrulyEmpty ? <div className="unified-scroll">
+        <div className="unified-canvas" style={{ width: layout.width, height: layout.height }}>
           <svg
             className="unified-edges"
             width={layout.width}
@@ -846,7 +899,7 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
             )
           })}
         </div>
-      </div>
+      </div> : null}
 
       <div className="unified-footnote">
         <span>Generated {new Date(graph.generatedAt).toLocaleTimeString()}</span>

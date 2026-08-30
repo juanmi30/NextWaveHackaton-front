@@ -432,6 +432,46 @@
 
 .driver-up { color: #b1472f; }
 .driver-down { color: #167547; }
+.driver-neutral { color: #7f899b; }
+
+.unified-feature-snapshot {
+  margin-top: 3px;
+  border-top: 1px solid var(--line);
+  padding-top: 5px;
+}
+
+.unified-feature-snapshot summary {
+  color: var(--muted);
+  font-size: 7.5px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.unified-feature-snapshot > div {
+  display: grid;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.unified-feature-snapshot span {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 7.5px;
+}
+
+.unified-feature-snapshot small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unified-feature-snapshot strong {
+  color: var(--ink);
+  white-space: nowrap;
+}
 
 .unified-evidence-warning {
   padding: 8px 12px;
@@ -791,7 +831,6 @@
 
 .unified-scroll { min-height: 340px; background: #080e1a; }
 .unified-canvas { min-height: 340px; background-color: #080e1a; background-image: radial-gradient(circle, rgba(128,145,170,.12) .65px, transparent .75px), radial-gradient(circle at 50% 8%, rgba(119,104,255,.045), transparent 34%); background-size: 19px 19px, 100% 100%; }
-.unified-canvas-empty { min-height: 340px; }
 .unified-edge-selected { stroke: #766bea; stroke-width: 2.3; }.unified-edge-alternative { stroke: #465166; stroke-width: 1.25; stroke-dasharray: 4 6; }
 .unified-arrow-selected { fill: #766bea; }.unified-arrow-alternative { fill: #465166; }
 
