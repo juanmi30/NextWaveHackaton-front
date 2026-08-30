@@ -45,6 +45,8 @@ export type Incident = {
   summaryOps?: string | null
   summaryExec?: string | null
   severity: number
+  priorityRank?: number
+  priorityScore?: number
   status: IncidentStatus
   expectedApprovals: number
   actualApprovals: number

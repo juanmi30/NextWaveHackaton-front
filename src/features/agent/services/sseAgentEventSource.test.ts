@@ -15,7 +15,12 @@ class FakeEventSource {
 
 globalThis.EventSource = FakeEventSource as unknown as typeof EventSource
 const { SseAgentEventSource, parseAgentStreamEvent } = await import('./sseAgentEventSource.ts')
-const diagnosis: AgentDiagnosis = { incidentId: 'inc-1', evidenceStatus: 'INSUFFICIENT', affectedScope: { provider: 'dLocal' }, rootCause: null, impact: { expectedApprovalRate: null, observedApprovalRate: null, lossPerMinuteCents: null, startedAt: null }, evidence: [], recurrence: 'Unknown', recommendation: { action: 'Review route', requiresHumanApproval: true }, summaries: { operations: 'Investigate', executive: 'Approval declined' } }
+const emptyScope = { merchant: null, provider: null, method: null, country: null, issuingBank: null, failureReason: null }
+const diagnosis: AgentDiagnosis = {
+  incidentId: 'inc-1', evidenceStatus: 'INSUFFICIENT', affectedScope: { ...emptyScope, provider: 'dLocal' }, rootCause: null,
+  impact: { expectedApprovalRate: null, observedApprovalRate: null, lossPerMinuteCents: null, startedAt: null }, evidence: [], recurrence: 'Unknown', recommendation: { action: 'Review route', requiresHumanApproval: true }, summaries: { operations: 'Investigate', executive: 'Approval declined' },
+  confidenceAnalysis: { score: 0.4, level: 'LOW', factors: [], limitations: ['No healthy control'] }, ruledOutHypotheses: [], counterfactualImpact: { estimatedRecoverableApprovalsPerMinute: null, estimatedRecoverableApprovalsPerHour: null, estimatedRecoverableRevenuePerHourCents: 0 }, diagnosisTrace: [],
+}
 
 test('parses public events and maps lifecycle, tools, diagnosis, and completion', () => {
   FakeEventSource.instances = []

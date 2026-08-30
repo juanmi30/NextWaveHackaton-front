@@ -1,66 +1,26 @@
 # Front integration notes
 
-## Objetivo
+## Connected backend
 
-Dejar una base frontend demostrable contra el backend actual sin volver a tocar backend y sin arrastrar dependencias innecesarias del proyecto Yuno anterior.
+The frontend uses `VITE_API_URL` as the backend root and integrates health, analytics, incidents, transactions, detection, live monitor controls, live degradations, and incident Agent SSE.
 
-## Reutilizado conceptualmente del front anterior
+Overview polls live status, analytics and open incidents every 2.5 seconds while mounted. Polling is guarded against overlap and preserves the last successful data after transient failures.
 
-- Organización por `features/*` para separar acceso a API por dominio.
-- Dashboard shell con navegación lateral.
-- Cards de estado/resumen.
-- Tabla operativa de riesgos/incidentes.
-- Pantallas separadas para overview, incidentes y transacciones.
+## Demo flow
 
-## No copiado
+1. Start the live monitor and confirm transactions and automatic detection counters increase.
+2. Confirm NORMAL traffic remains quiet.
+3. Inject an arbitrary condition using Trial by Fire.
+4. Wait for automatic detection without manually running detection.
+5. Analyze the resulting incident and review evidence, impact and human-approved recommendation.
 
-- URLs hardcodeadas al Railway del hackathon anterior.
-- MUI, Nivo, ReactFlow y DataGrid: son útiles si el reto final los necesita, pero añaden tiempo de instalación/customización ahora.
-- APIs viejas (`/risk-notifications`, `/health-graph`, `/failure-prediction`) porque no corresponden al backend actual.
-- Mocks/datos fijos del dashboard anterior.
+Mock Agent routes and routing recommendations remain available only when `VITE_AGENT_DATA_SOURCE=mock`. They are hidden in backend mode.
 
-## Endpoints ya conectados
-
-- `GET /health`
-- `GET /api/analytics/summary`
-- `GET /api/analytics/risk`
-- `POST /api/analytics/detect`
-- `POST /api/demo/seed?reset=true`
-- `GET /api/incidents`
-- `PATCH /api/incidents/:id/acknowledge`
-- `PATCH /api/incidents/:id/resolve`
-- `GET /api/transactions`
-
-## Flujo de demo
-
-1. Entrar a Overview.
-2. Pulsar **Seed demo**.
-3. Ver el riesgo de `dLocal / CARD / CO / Bancolombia`.
-4. Pulsar **Detect risk**.
-5. Entrar a Incidents.
-6. Acknowledge / Resolve.
-7. Entrar a Transactions para mostrar los eventos base.
-
-## Próximo trabajo de front recomendado
-
-1. Branding final Yuno/Nauta y pulir Overview.
-2. Filtros de análisis (`groupBy`, ventana, merchant/provider).
-3. Detalle de incidente en drawer/modal.
-4. Solo si sobra tiempo: gráficas de serie temporal o health graph.
-5. Cuando se revele el challenge: reemplazar/renombrar pantallas sin tocar la capa `features/*`.
-
-## Configuración
-
-`VITE_API_URL` debe ser la raíz del backend, sin `/api`.
-
-Local:
+## Configuration
 
 ```env
 VITE_API_URL=http://localhost:3000
+VITE_AGENT_DATA_SOURCE=sse
 ```
 
-Railway:
-
-```env
-VITE_API_URL=https://<tu-back>.up.railway.app
-```
+If the source is omitted but `VITE_API_URL` exists, live SSE mode is selected.

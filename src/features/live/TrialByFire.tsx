@@ -1,0 +1,18 @@
+import { useState, type FormEvent } from 'react'
+import { addLiveDegradation, removeLiveDegradation } from './liveApi'
+import type { AddLiveDegradationInput, LiveDegradation } from './types'
+
+const initial = { merchant: '', provider: '', method: '', country: '', issuingBank: '', failureReason: 'DO_NOT_HONOR', approvalRate: '0.30', durationSeconds: '90' }
+export function TrialByFire({ degradations, refreshedAt, onChanged }: { degradations: LiveDegradation[]; refreshedAt: number; onChanged: () => Promise<void> }) {
+  const [form, setForm] = useState(initial); const [busy, setBusy] = useState(false); const [message, setMessage] = useState<string | null>(null)
+  const change = (key: keyof typeof initial, value: string) => setForm((current) => ({ ...current, [key]: value }))
+  const submit = async (event: FormEvent) => {
+    event.preventDefault(); setBusy(true); setMessage(null)
+    const dimensions = Object.fromEntries((['merchant', 'provider', 'method', 'country', 'issuingBank'] as const).map((key) => [key, form[key].trim()]).filter((entry) => entry[1])) as AddLiveDegradationInput['dimensions']
+    try { await addLiveDegradation({ dimensions, approvalRate: Number(form.approvalRate), durationSeconds: Number(form.durationSeconds), failureReason: form.failureReason.trim() || undefined }); setMessage('Live degradation injected. Waiting for automatic detection.'); await onChanged() }
+    catch (err) { setMessage(err instanceof Error ? err.message : 'Unable to inject degradation') }
+    finally { setBusy(false) }
+  }
+  const remove = async (id: string) => { setBusy(true); try { await removeLiveDegradation(id); await onChanged() } finally { setBusy(false) } }
+  return <article className="panel trial-by-fire"><div className="panel-header"><div><p className="eyebrow">Trial by fire</p><h3>Inject live degradation</h3><p>Automatic detection will evaluate the resulting traffic.</p></div></div><div className="trial-layout"><form onSubmit={(event) => void submit(event)}><div className="trial-fields">{(['merchant', 'provider', 'method', 'country', 'issuingBank'] as const).map((key) => <label key={key}><span>{key === 'issuingBank' ? 'Issuing bank' : key}</span><input className="input" value={form[key]} onChange={(event) => change(key, event.target.value)} placeholder="Any" /></label>)}<label><span>Failure reason</span><input className="input" value={form.failureReason} onChange={(event) => change('failureReason', event.target.value)} /></label><label><span>Approval rate</span><input className="input" type="number" min="0" max="1" step="0.01" required value={form.approvalRate} onChange={(event) => change('approvalRate', event.target.value)} /></label><label><span>Duration (seconds)</span><input className="input" type="number" min="1" required value={form.durationSeconds} onChange={(event) => change('durationSeconds', event.target.value)} /></label></div><button className="button primary" type="submit" disabled={busy}>Inject degradation</button>{message ? <p className="trial-message">{message}</p> : null}</form><section><h4>Active degradations</h4>{degradations.length === 0 ? <p className="empty-state compact">No active injected conditions.</p> : <div className="degradation-list">{degradations.map((item) => <div key={item.id}><strong>{Object.values(item.dimensions).filter(Boolean).join(' · ') || 'All traffic'}</strong><span>Approval {(item.approvalRate * 100).toFixed(0)}% · {item.failureReason}</span><span>Expires in {Math.max(0, Math.ceil((new Date(item.expiresAt).getTime() - refreshedAt) / 1000))}s</span><button className="button tiny ghost" type="button" disabled={busy} onClick={() => void remove(item.id)}>Remove</button></div>)}</div>}</section></div></article>
+}

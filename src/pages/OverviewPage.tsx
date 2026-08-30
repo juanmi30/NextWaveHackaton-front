@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { MetricCard } from '../components/dashboard/MetricCard'
 import { BreakdownTable } from '../components/dashboard/BreakdownTable'
 import { detectRisk, getAnalyticsBreakdown, getAnalyticsSummary, seedDemo } from '../features/dashboard/dashboardApi'
@@ -8,19 +8,28 @@ import { AgentSummaryCard } from '../features/agent/components/AgentSummaryCard'
 import { RouteHealthTable } from '../features/routes/components/RouteHealthTable'
 import { useRouteHealth } from '../features/routes/hooks/useRouteHealth'
 import { RoutingRecommendationCard } from '../features/routing/components/RoutingRecommendationCard'
+import { dataSources } from '../config/dataSources'
+import { useLiveMonitor } from '../features/live/useLiveMonitor'
+import { LiveControlTower } from '../features/live/LiveControlTower'
+import { TrialByFire } from '../features/live/TrialByFire'
 
 const percent = (value?: number | null) => typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : 'N/A'
 
 export function OverviewPage() {
   const { routes, watchedRouteId } = useRouteHealth()
+  const liveMode = dataSources.agent === 'sse'
+  const live = useLiveMonitor(liveMode)
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
   const [breakdown, setBreakdown] = useState<AnalyticsBreakdown | null>(null)
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [loading, setLoading] = useState(true)
   const [action, setAction] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const refreshingRef = useRef(false)
 
   const refresh = useCallback(async () => {
+    if (refreshingRef.current) return
+    refreshingRef.current = true
     setError(null)
     try {
       const [summaryData, analysisData, incidentData] = await Promise.all([
@@ -35,12 +44,16 @@ export function OverviewPage() {
       setError(err instanceof Error ? err.message : 'Unable to load dashboard')
     } finally {
       setLoading(false)
+      refreshingRef.current = false
     }
   }, [])
 
   useEffect(() => {
     void refresh()
-  }, [refresh])
+    if (!liveMode) return
+    const timer = window.setInterval(() => void refresh(), 2500)
+    return () => window.clearInterval(timer)
+  }, [liveMode, refresh])
 
   const runSeed = async () => {
     setAction('Seeding demo data…')
@@ -79,13 +92,15 @@ export function OverviewPage() {
         </div>
         <div className="actions">
           <button className="button secondary" type="button" onClick={() => void runSeed()} disabled={Boolean(action)}>Seed demo</button>
-          <button className="button primary" type="button" onClick={() => void runDetection()} disabled={Boolean(action)}>Detect risk</button>
+          <button className="button ghost" type="button" onClick={() => void runDetection()} disabled={Boolean(action)}>Run detection (debug)</button>
           <button className="button ghost" type="button" onClick={() => void refresh()} disabled={loading}>Refresh</button>
         </div>
       </div>
 
       {action ? <div className="notice success-notice">{action}</div> : null}
-      {error ? <div className="notice error-notice">{error}</div> : null}
+      {error || live.error ? <div className="notice error-notice">Backend connectivity warning: {error ?? live.error}</div> : null}
+
+      {liveMode ? <><LiveControlTower status={live.status} busy={live.busy} onStart={live.start} onStop={live.stop} />{summary?.state === 'NORMAL' && summary.incidents.open === 0 ? <div className="quiet-state"><strong>NORMAL</strong><span>Monitoring continuously · no meaningful anomalies detected</span><small>Detection runs: {summary.detection.total} · Quiet runs: {summary.detection.noAnomaly} · Open incidents: 0</small></div> : null}<TrialByFire degradations={live.degradations} refreshedAt={live.refreshedAt} onChanged={live.refresh} /></> : null}
 
       <div className="metric-grid">
         <MetricCard label="Transactions" value={loading ? '—' : String(summary?.transactions ?? 0)} detail="All ingested transactions" />
@@ -95,15 +110,15 @@ export function OverviewPage() {
       </div>
 
       <AgentSummaryCard />
-      <RoutingRecommendationCard />
+      {!liveMode ? <RoutingRecommendationCard /> : null}
 
       <article className="panel route-health-overview">
         <div className="panel-header"><div><h3>Route health</h3><p>Live payment performance and agent monitoring status.</p></div></div>
-        <RouteHealthTable routes={routes} watchedRouteId={watchedRouteId} />
+        {liveMode ? <BreakdownTable rows={breakdown?.rows ?? []} /> : <RouteHealthTable routes={routes} watchedRouteId={watchedRouteId} />}
       </article>
 
       <div className="panel-grid">
-        <article className="panel panel-wide">
+        {!liveMode ? <article className="panel panel-wide">
           <div className="panel-header">
             <div>
               <h3>Analytics breakdown</h3>
@@ -112,7 +127,7 @@ export function OverviewPage() {
             <span className="pill neutral">groupBy: route</span>
           </div>
           {loading ? <div className="empty-state">Loading analytics breakdown…</div> : <BreakdownTable rows={breakdown?.rows ?? []} />}
-        </article>
+        </article> : null}
 
         <article className="panel">
           <div className="panel-header">
@@ -130,6 +145,7 @@ export function OverviewPage() {
                 <div>
                   <strong>{incident.summaryOps ?? 'No operational summary'}</strong>
                   <span>{percent(incident.diagnoses?.[0]?.observedRate)} now · {percent(incident.diagnoses?.[0]?.baselineRate)} baseline</span>
+                  <a className="incident-analyze-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>Analyze →</a>
                 </div>
               </div>
             ))}

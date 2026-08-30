@@ -60,14 +60,15 @@ export function IncidentsPage() {
       <article className="panel panel-wide">
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Incident</th><th>Status</th><th>Approval</th><th>Impact</th><th>Detected</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Priority</th><th>Incident</th><th>Status</th><th>Approval</th><th>Impact</th><th>Detected</th><th>Actions</th></tr></thead>
             <tbody>
               {incidents.map((incident) => (
                 <tr key={incident.id}>
+                  <td><strong className="priority-rank">{incident.priorityRank ? `#${incident.priorityRank}` : '—'}</strong><span className={`pill severity-${incident.severity}`}>{incident.severity >= 4 ? 'CRITICAL' : incident.severity >= 3 ? 'HIGH' : incident.severity >= 2 ? 'MEDIUM' : 'LOW'}</span></td>
                   <td><strong>{incident.summaryOps ?? 'No operational summary'}</strong><span className="cell-subtitle">{incident.summaryExec ?? 'No executive summary'}</span></td>
                   <td><span className={`pill status-${incident.status.toLowerCase()}`}>{incident.status}</span></td>
                   <td>{incident.diagnoses?.[0] ? <>{percent(incident.diagnoses[0].observedRate)} <span className="muted">vs {percent(incident.diagnoses[0].baselineRate)}</span></> : <span className="muted">No diagnosis available</span>}</td>
-                  <td>{money(incident.lossPerMinuteCents)}</td>
+                  <td><strong>{money(incident.lossPerMinuteCents)}/min</strong><span className="cell-subtitle">{money(incident.lossPerMinuteCents * 60)}/hour</span></td>
                   <td>{new Date(incident.detectedAt).toLocaleString()}</td>
                   <td>
                     <div className="row-actions">
@@ -78,8 +79,8 @@ export function IncidentsPage() {
                   </td>
                 </tr>
               ))}
-              {!loading && incidents.length === 0 ? <tr><td colSpan={6}><div className="empty-state">No incidents for this filter.</div></td></tr> : null}
-              {loading ? <tr><td colSpan={6}><div className="empty-state">Loading incidents…</div></td></tr> : null}
+              {!loading && incidents.length === 0 ? <tr><td colSpan={7}><div className="empty-state">No incidents for this filter.</div></td></tr> : null}
+              {loading ? <tr><td colSpan={7}><div className="empty-state">Loading incidents…</div></td></tr> : null}
             </tbody>
           </table>
         </div>

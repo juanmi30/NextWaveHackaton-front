@@ -1,95 +1,47 @@
 # Frontend–backend integration contract
 
-This document describes the target integration boundary. Future endpoints listed below are proposals, not implemented APIs.
+## Live monitor
 
-## Agent event stream (future)
+- `GET /api/live/status`
+- `POST /api/live/start` with `{ "autoSeed": true }`
+- `POST /api/live/stop`
+- `POST /api/live/degradations`
+- `GET /api/live/degradations`
+- `DELETE /api/live/degradations/:id`
 
-Conceptual endpoint:
+Injected degradations are runtime conditions, not incidents. Prediction is an early warning; only detection creates incidents.
 
-```http
-GET /api/agent/events
-Accept: text/event-stream
-```
-
-The server should emit `agent.event` SSE messages whose JSON data maps directly to the frontend `AgentEvent` contract.
-
-```text
-event: agent.event
-data: {"type":"phase_changed","phase":"DIAGNOSE","timestamp":"2026-08-29T12:00:00.000Z"}
-```
-
-Required transport behavior:
-
-- Public event names are `run_started`, `phase_changed`, `tool_started`, `tool_completed`, `diagnosis`, `run_completed`, and `error`.
-- The public lifecycle is `OBSERVE → INVESTIGATE → DIAGNOSE → RECOMMEND → REPORT`.
-- `SseAgentEventSource` maps public payloads into frontend domain events and stores diagnosis/tool activity separately.
-- Timestamps must be ISO 8601.
-- Reconnection, ordering and duplicate handling remain to be defined before implementing SSE.
-
-## REST API
-
-### Existing / to confirm
-
-These routes are used by the current frontend and must be confirmed against the deployed backend:
+## Analytics and operations
 
 - `GET /health`
 - `GET /api/analytics/summary`
-- `GET /api/analytics/risk`
-- `POST /api/analytics/detect`
+- `GET /api/analytics/breakdown`
 - `GET /api/incidents`
+- `PATCH /api/incidents/:id/acknowledge`
+- `PATCH /api/incidents/:id/resolve`
 - `GET /api/transactions`
+- `POST /api/detection/run`
 - `POST /api/demo/seed`
 
-All current REST requests use `VITE_API_URL` through `src/lib/api.ts`. Missing configuration or an offline API affects only backend-backed screens; the agent demo remains local.
+Live Overview route health uses breakdown rows directly. It does not substitute frontend risk classification for backend detection.
 
-### Future — not implemented
+## Agent SSE
 
-- `GET /api/agent/events`
-- `POST /api/agent/run`
-- `GET /api/agent/status`
-- `GET /api/routes/health`
-- `GET /api/routing/recommendations/:incidentId`
-
-## Data flow
-
-### Demo mode
+`GET /api/agent/incidents/:incidentId/analyze/stream` returns standard SSE `message` events. JSON `data.type` discriminates public events.
 
 ```text
-approvalDropColombia
-        ↓
-MockAgentEventSource
-        ↓
-AgentStreamProvider
-        ↓
-AgentEvent[]
-        ↓
-RouteHealth
-        ↓
-RoutingRecommendation
-        ↓
-UI
+OBSERVE → INVESTIGATE → DIAGNOSE → RECOMMEND → REPORT
 ```
 
-### Future live mode
+P5.1 includes confidence analysis, ruled-out hypotheses, counterfactual impact and diagnosis trace. Evidence uses `baselineValue` and `observedValue`. P5.2 `declineIntelligence` and `operationalOwnership` are optional additive fields.
 
-```text
-Backend Agent
-        ↓
-SSE AgentEventSource adapter
-        ↓
-AgentStreamProvider
-        ↓
-AgentEvent[]
-        ↓
-RouteHealth
-        ↓
-RoutingRecommendation
-        ↓
-UI
+Recommendations are advisory. The frontend executes no retries, rerouting or remediation.
+
+## Data sources
+
+```env
+VITE_API_URL=http://localhost:3000
+VITE_AGENT_DATA_SOURCE=sse
 ```
 
-The UI consumes domain state only. Live mode selects `SseAgentEventSource`; demo mode selects `MockAgentEventSource`. Set `VITE_AGENT_DATA_SOURCE=sse` and configure `VITE_API_URL` to enable live mode.
-
-## Scenario contract
-
-`approvalDropColombia` contains only scenario data: identity, initial route, ordered events, routing candidates and playback interval. It contains no timers or React state. The mock event source owns playback mechanics, while `AgentStreamProvider` remains the application's single stream instance and state boundary.
+Mock mode must be explicit when a backend URL exists. Mock route health and simulated routing UI are restricted to mock mode.

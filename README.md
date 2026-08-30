@@ -14,6 +14,7 @@ Set `VITE_API_URL` to the backend root, **without** `/api` at the end:
 
 ```env
 VITE_API_URL=http://localhost:3000
+VITE_AGENT_DATA_SOURCE=sse
 ```
 
 ## Current screens
@@ -24,13 +25,15 @@ VITE_API_URL=http://localhost:3000
 
 Hash navigation is intentional for the hackathon base: no extra routing dependency is needed and Vercel refreshes stay simple.
 
-## Demo flow from the UI
+## Live demo flow from the UI
 
-1. **Seed demo** creates deterministic transaction history with a degraded route.
-2. **Detect risk** runs backend analytics and creates HIGH/CRITICAL incidents.
-3. Review the route on Overview, then manage it under Incidents.
+1. Start the live monitor and show generated transactions and detection runs increasing.
+2. Confirm NORMAL traffic remains quiet.
+3. Inject an arbitrary degradation through **Trial by fire**.
+4. Wait for automatic detection and open the independently prioritized incident.
+5. Analyze it through Agent SSE and review evidence, impact and recommended human action.
 
-The degraded seed route is `Nova Travel / dLocal / CARD / CO / Bancolombia`.
+Use `VITE_AGENT_DATA_SOURCE=mock` explicitly only for isolated visual work. When `VITE_API_URL` exists, the frontend otherwise prefers live backend mode.
 
 ## What was reused from the previous Yuno front
 
