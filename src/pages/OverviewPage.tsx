@@ -147,7 +147,7 @@ export function OverviewPage() {
       </div>
       <NewIncidentToast incident={newIncident} onClose={() => setNewIncident(null)} />
 
-      <AgentSummaryCard />
+      <AgentSummaryCard monitorRunning={live.status?.state === 'RUNNING'} earlyWarnings={live.status?.latestPredictiveRisks.length ?? 0} />
       {!liveMode ? <RoutingRecommendationCard /> : null}
 
       <article className="panel route-health-overview">
@@ -184,7 +184,7 @@ export function OverviewPage() {
                 <div>
                   <strong>{incident.summaryOps ?? 'No operational summary'}</strong>
                   <span>{percent(incident.diagnoses?.[0]?.observedRate)} now · {percent(incident.diagnoses?.[0]?.baselineRate)} baseline</span>
-                  {analysisStatus === 'COMPLETED' ? <a className="incident-analyze-link primary-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>View diagnosis →</a> : analysisStatus === 'FAILED' ? <a className="incident-analyze-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>Retry analysis →</a> : <a className="incident-analysis-running" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>● AI analysis running</a>}
+                  {analysisStatus === 'COMPLETED' ? <a className="incident-analyze-link primary-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>View diagnosis →</a> : analysisStatus === 'FAILED' ? <a className="incident-analyze-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>Retry analysis →</a> : <a className="incident-analysis-running" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>● {analysisStatus === 'RUNNING' ? 'AI analysis running' : analysisStatus === 'QUEUED' ? 'Queued for analysis' : 'Waiting to be scheduled'}</a>}
                 </div>
               </div>
             })}

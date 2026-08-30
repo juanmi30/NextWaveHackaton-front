@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { MockAgentEventSource } from '../services/mockAgentStream'
 import type { AgentEventSource } from '../services/agentEventSource'
 import { approvalDropColombia } from '../scenarios/approvalDropColombia'
@@ -20,10 +20,13 @@ export type AgentStreamState = {
   toolActivities: AgentToolActivity[]
   error: string | null
   isSse: boolean
+  connectionState: 'IDLE' | 'WAITING' | 'CONNECTING' | 'ANALYZING' | 'READY' | 'RECONNECTING' | 'ERROR'
+  reconnectAttempt: number
   startDemo: () => void
   resetDemo: () => void
   pauseDemo: () => void
   resumeDemo: () => void
+  retryAnalysis: () => void
 }
 
 export function useAgentStream(incidentId: string | null): AgentStreamState {
@@ -32,12 +35,12 @@ export function useAgentStream(incidentId: string | null): AgentStreamState {
   const [diagnosis, setDiagnosis] = useState<AgentDiagnosis | null>(null)
   const [toolActivities, setToolActivities] = useState<AgentToolActivity[]>([])
   const [error, setError] = useState<string | null>(null)
-  const automaticallyStartedIncident = useRef<string | null>(null)
+  const [reconnectAttempt, setReconnectAttempt] = useState(0)
   const isSse = dataSources.agent === 'sse'
   const source = useMemo<AgentEventSource>(() => isSse && incidentId ? new SseAgentEventSource(incidentId, {
     onDiagnosis: setDiagnosis,
     onToolActivity: (activity) => setToolActivities((current) => activity.status === 'completed' && current.some((item) => item.toolName === activity.toolName && item.status === 'running') ? current.map((item) => item.toolName === activity.toolName && item.status === 'running' ? { ...item, status: 'completed', completedAt: activity.completedAt } : item) : [...current, activity]),
-    onFailure: (message) => { setError(message); setDemoStatus('ERROR') },
+    onFailure: (message) => { setError(message); setReconnectAttempt((attempt) => attempt + 1); setDemoStatus('ERROR') },
   }) : new MockAgentEventSource(), [incidentId, isSse])
   useEffect(() => () => source.dispose(), [source])
   useEffect(() => { setEvents([]); setDiagnosis(null); setToolActivities([]); setError(null); setDemoStatus('IDLE') }, [source])
@@ -45,21 +48,17 @@ export function useAgentStream(incidentId: string | null): AgentStreamState {
   const startDemo = useCallback(() => {
     if (demoStatus === 'RUNNING') return
     if (isSse && !incidentId) { setError('Select an incident before starting live analysis.'); setDemoStatus('ERROR'); return }
-    setEvents([])
-    setDiagnosis(null); setToolActivities([]); setError(null)
+    if (!isSse || demoStatus !== 'ERROR') { setEvents([]); setDiagnosis(null); setToolActivities([]) }
+    setError(null)
     setDemoStatus('RUNNING')
-    source.start((event) => setEvents((current) => [...current, event]), () => setDemoStatus('COMPLETED'))
+    source.start((event) => { setError(null); setEvents((current) => [...current, event]) }, () => { setReconnectAttempt(0); setDemoStatus('COMPLETED') })
   }, [demoStatus, incidentId, isSse, source])
-  useEffect(() => {
-    if (!isSse || !incidentId || automaticallyStartedIncident.current === incidentId) return
-    automaticallyStartedIncident.current = incidentId
-    const timer = window.setTimeout(startDemo, 0)
-    return () => window.clearTimeout(timer)
-  }, [incidentId, isSse, startDemo])
   const resetDemo = useCallback(() => { source.reset(); setEvents([]); setDiagnosis(null); setToolActivities([]); setError(null); setDemoStatus('IDLE') }, [source])
   const pauseDemo = useCallback(() => { if (!isSse && demoStatus === 'RUNNING') { source.pause?.(); setDemoStatus('PAUSED') } }, [demoStatus, isSse, source])
   const resumeDemo = useCallback(() => { if (!isSse && demoStatus === 'PAUSED') { source.resume?.(); setDemoStatus('RUNNING') } }, [demoStatus, isSse, source])
+  const retryAnalysis = useCallback(() => { setReconnectAttempt(0); startDemo() }, [startDemo])
   const latestEvent = events.at(-1) ?? null
+  const connectionState = diagnosis ? 'READY' : !incidentId && isSse ? 'WAITING' : demoStatus === 'RUNNING' ? (events.length > 0 ? 'ANALYZING' : 'CONNECTING') : demoStatus === 'COMPLETED' ? 'READY' : demoStatus === 'ERROR' ? reconnectAttempt <= 4 ? 'RECONNECTING' : 'ERROR' : 'IDLE'
   return {
     events,
     latestEvent,
@@ -67,10 +66,11 @@ export function useAgentStream(incidentId: string | null): AgentStreamState {
     currentPhase: latestEvent?.phase ?? null,
     demoStatus,
     scenarioId: approvalDropColombia.id,
-    incidentId, diagnosis, toolActivities, error, isSse,
+    incidentId, diagnosis, toolActivities, error, isSse, connectionState, reconnectAttempt,
     startDemo,
     resetDemo,
     pauseDemo,
     resumeDemo,
+    retryAnalysis,
   }
 }

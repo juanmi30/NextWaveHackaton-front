@@ -74,7 +74,7 @@ export function IncidentsPage() {
                   <td>{new Date(incident.detectedAt).toLocaleString()}</td>
                   <td>
                     <div className="row-actions">
-                      {analysisStatus === 'COMPLETED' ? <a className="button tiny primary" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>View diagnosis</a> : analysisStatus === 'FAILED' ? <a className="button tiny secondary" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>Retry analysis</a> : <a className="analysis-running-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>AI analysis running</a>}
+                      {analysisStatus === 'COMPLETED' ? <a className="button tiny primary" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>View diagnosis</a> : analysisStatus === 'FAILED' ? <a className="button tiny secondary" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>Retry analysis</a> : <a className="analysis-running-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>{analysisStatus === 'RUNNING' ? 'AI analysis running' : analysisStatus === 'QUEUED' ? 'Queued for analysis' : 'Waiting to be scheduled'}</a>}
                       {incident.status === 'OPEN' ? <button className="button tiny secondary" type="button" disabled={busyId === incident.id} onClick={() => void update(incident.id, 'ack')}>Acknowledge</button> : null}
                       {incident.status !== 'RESOLVED' ? <button className="button tiny primary" type="button" disabled={busyId === incident.id} onClick={() => void update(incident.id, 'resolve')}>Resolve</button> : null}
                     </div>

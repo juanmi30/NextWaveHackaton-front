@@ -9,6 +9,9 @@ import { TransactionsPage } from './pages/TransactionsPage'
 import { AgentLivePage } from './features/agent/pages/AgentLivePage'
 import { AgentStreamProvider } from './features/agent/context/AgentStreamContext'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useLatestOpenIncident } from './features/incidents/useLatestOpenIncident'
+import { compareIncidentPriority } from './features/incidents/incidentPriority'
+import { dataSources } from './config/dataSources'
 
 const pageFromHash = (): PageKey => {
   const hash = window.location.hash.replace('#/', '').split('?')[0]
@@ -20,6 +23,7 @@ const incidentIdFromHash = () => new URLSearchParams(window.location.hash.split(
 function App() {
   const [page, setPage] = useState<PageKey>(pageFromHash)
   const [incidentId, setIncidentId] = useState<string | null>(incidentIdFromHash)
+  const openIncidents = useLatestOpenIncident(page === 'agent-live' && dataSources.agent === 'sse')
 
   useEffect(() => {
     const handleHashChange = () => { setPage(pageFromHash()); setIncidentId(incidentIdFromHash()) }
@@ -35,10 +39,24 @@ function App() {
 
   useKeyboardShortcuts({ navigate })
 
+  const selectIncident = useCallback((id: string) => {
+    window.location.hash = `#/agent-live?incidentId=${encodeURIComponent(id)}`
+  }, [])
+
+  useEffect(() => {
+    if (page !== 'agent-live' || incidentId || !openIncidents.latest) return
+    selectIncident(openIncidents.latest.id)
+  }, [incidentId, openIncidents.latest, page, selectIncident])
+
+  const selectedOpenIncident = openIncidents.incidents.find((incident) => incident.id === incidentId)
+  const priorityIncident = selectedOpenIncident && openIncidents.latest && openIncidents.latest.id !== selectedOpenIncident.id && compareIncidentPriority(openIncidents.latest, selectedOpenIncident) < 0
+    ? openIncidents.latest
+    : null
+
   let content = <OverviewPage />
   if (page === 'incidents') content = <IncidentsPage />
   if (page === 'transactions') content = <TransactionsPage />
-  if (page === 'agent-live') content = <AgentLivePage />
+  if (page === 'agent-live') content = <AgentLivePage openIncidents={openIncidents.incidents} openIncidentsLoaded={openIncidents.loaded} priorityIncident={priorityIncident} onSwitchIncident={selectIncident} />
 
   return <AgentStreamProvider incidentId={incidentId}><DashboardLayout page={page} onNavigate={navigate}>{content}</DashboardLayout></AgentStreamProvider>
 }

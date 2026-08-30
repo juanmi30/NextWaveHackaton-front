@@ -15,7 +15,7 @@ export class ApiError extends Error {
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_BASE_URL) {
-    throw new Error('Falta VITE_API_URL. Crea .env.local usando .env.example como base.')
+    throw new Error('VITE_API_URL is missing. Create .env.local using .env.example as a base.')
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {

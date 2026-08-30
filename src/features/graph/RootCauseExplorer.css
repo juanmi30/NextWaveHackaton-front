@@ -818,3 +818,30 @@
   .unified-summary { display: flex; }
   .unified-topology-heading { align-items: flex-start; gap: 5px; }
 }
+
+:root[data-theme="light"] .unified-panel,
+:root[data-theme="light"] .unified-inspector,
+:root[data-theme="light"] .unified-selected-route,
+:root[data-theme="light"] .unified-pipeline,
+:root[data-theme="light"] .unified-context-card,
+:root[data-theme="light"] .unified-incident-panel { color: var(--ink); background: #fff; }
+:root[data-theme="light"] .unified-focus-switch { background: #eef1f6; }
+:root[data-theme="light"] .unified-focus-switch button.active { color: #392ba4; background: rgba(93,76,230,.11); }
+:root[data-theme="light"] .unified-focus-incident .unified-focus-switch button.active:last-child { color: #a82f44; background: rgba(200,62,85,.09); }
+:root[data-theme="light"] .unified-summary,
+:root[data-theme="light"] .unified-topology-heading,
+:root[data-theme="light"] .unified-footnote { background: #f7f8fb; }
+:root[data-theme="light"] .unified-summary strong { color: #273248; }
+:root[data-theme="light"] .unified-stage,
+:root[data-theme="light"] .unified-predictive-metrics span,
+:root[data-theme="light"] .unified-context-totals span,
+:root[data-theme="light"] .unified-incident-metrics span,
+:root[data-theme="light"] .unified-reasons > div { background: #f8f9fc; }
+:root[data-theme="light"] .unified-scroll,
+:root[data-theme="light"] .unified-canvas { background-color: #f5f7fb; background-image: radial-gradient(circle, rgba(86,98,119,.16) .65px, transparent .75px), radial-gradient(circle at 50% 8%, rgba(93,76,230,.055), transparent 34%); }
+:root[data-theme="light"] .unified-node { color: var(--ink); background: #fff; box-shadow: 0 9px 24px rgba(35,42,66,.1); }
+:root[data-theme="light"] .unified-node:not(:disabled):hover,
+:root[data-theme="light"] .unified-node-inspected { background: #f7f6ff; }
+:root[data-theme="light"] .unified-node-title { color: #202a3c; }
+:root[data-theme="light"] .unified-node-traffic { background: linear-gradient(145deg, rgba(93,76,230,.1), #fff); }
+:root[data-theme="light"] .unified-traffic-content > strong { color: #4435c2; }
