@@ -178,6 +178,7 @@ tbody tr:hover { background: var(--terminal-panel-hover); }
 .pill.agent-running { color: var(--terminal-info); background: color-mix(in srgb, var(--terminal-info) 13%, transparent); }
 .pill.agent-success { color: var(--accent-success); background: color-mix(in srgb, var(--accent-success) 13%, transparent); }
 .pill.agent-warning { color: var(--accent-warning); background: color-mix(in srgb, var(--accent-warning) 13%, transparent); }
+.recommendation-block > .pill.agent-warning { border: 1px solid var(--badge-warning-border); color: var(--badge-warning-text); background: var(--badge-warning-bg); }
 .pill.agent-error { color: var(--accent-danger); background: color-mix(in srgb, var(--accent-danger) 13%, transparent); }
 .recommendation-block, .executive-summary { background: rgba(119,104,255,.045); }
 .mini-sparkline { display: block; overflow: visible; }
