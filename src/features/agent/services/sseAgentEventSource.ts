@@ -27,7 +27,7 @@ export class SseAgentEventSource implements AgentEventSource {
 
   start(onEvent: (event: AgentEvent) => void, onComplete?: () => void) {
     this.reset()
-    if (!this.baseUrl) { this.callbacks.onFailure('VITE_API_URL is not configured'); return }
+    if (!this.baseUrl) { this.callbacks.onFailure('Agent analysis is currently unavailable.'); return }
     this.runId = `incident-${this.incidentId}-${Date.now()}`
     const source = new EventSource(`${this.baseUrl}/api/agent/incidents/${encodeURIComponent(this.incidentId)}/analyze/stream`)
     this.source = source
@@ -36,7 +36,7 @@ export class SseAgentEventSource implements AgentEventSource {
       try { this.handle(parseAgentStreamEvent(rawEvent.data), onEvent, onComplete) }
       catch { this.fail('Invalid event received from agent stream') }
     }
-    source.onerror = () => this.fail('Agent stream connection failed')
+    source.onerror = () => this.fail('Unable to connect to agent analysis. Please retry.')
   }
 
   reset() { this.close(); this.sequence = 0; this.runId = '' }
@@ -49,7 +49,7 @@ export class SseAgentEventSource implements AgentEventSource {
     if (event.type === 'diagnosis') { this.callbacks.onDiagnosis(event.diagnosis); onEvent(this.toEvent(event.timestamp, 'DIAGNOSE', 'success', 'Diagnosis available', 'Structured incident diagnosis received.')); return }
     if (event.type === 'run_started') { this.runId = `incident-${event.incidentId}-${event.timestamp}`; onEvent(this.toEvent(event.timestamp, 'OBSERVE', 'running', 'Agent run started', `Analyzing incident ${event.incidentId}.`)); return }
     if (event.type === 'run_completed') { onEvent(this.toEvent(event.timestamp, 'REPORT', 'success', 'Agent run completed', 'The diagnosis and recommendation are ready for review.')); this.close(); onComplete?.(); return }
-    this.fail(event.message)
+    this.fail('Agent analysis failed. Please retry.')
   }
 
   private toEvent(timestamp: string, phase: AgentPhase, status: AgentEvent['status'], title: string, summary: string): AgentEvent {

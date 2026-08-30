@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { acknowledgeIncident, getIncidents, resolveIncident } from '../features/incidents/incidentsApi'
 import type { Incident, IncidentStatus } from '../types/domain'
 import { getIncidentAnalysisStatus } from '../features/agent/utils/incidentAnalysisStatus'
+import { getUserFacingError } from '../lib/api'
 
 const percent = (value?: number | null) => typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : 'N/A'
 const money = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
@@ -19,7 +20,7 @@ export function IncidentsPage() {
     try {
       setIncidents(await getIncidents(status === 'ALL' ? undefined : status, 100))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load incidents')
+      setError(getUserFacingError(err, 'Unable to load incidents. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -34,7 +35,7 @@ export function IncidentsPage() {
       else await resolveIncident(id)
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to update incident')
+      setError(getUserFacingError(err, 'Unable to update the incident. Please try again.'))
     } finally {
       setBusyId(null)
     }

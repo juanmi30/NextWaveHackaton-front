@@ -45,6 +45,6 @@ test('error, cleanup, and a new start close active connections', () => {
   const source = new SseAgentEventSource('inc-2', { onDiagnosis: () => {}, onToolActivity: () => {}, onFailure: (message) => failures.push(message) }, 'http://api')
   source.start(() => {}); const first = FakeEventSource.instances[0]
   source.start(() => {}); assert.equal(first.closed, true)
-  const second = FakeEventSource.instances[1]; second.emitMessage('error', { message: 'failed', timestamp: 'now' }); assert.equal(second.closed, true); assert.deepEqual(failures, ['failed'])
+  const second = FakeEventSource.instances[1]; second.emitMessage('error', { message: 'failed', timestamp: 'now' }); assert.equal(second.closed, true); assert.deepEqual(failures, ['Agent analysis failed. Please retry.'])
   source.start(() => {}); const third = FakeEventSource.instances[2]; source.dispose(); assert.equal(third.closed, true)
 })

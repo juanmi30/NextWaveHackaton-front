@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Incident } from '../../types/domain'
 import { getIncidents } from './incidentsApi'
 import { compareIncidentPriority } from './incidentPriority'
+import { getUserFacingError } from '../../lib/api'
 
 function rank(incidents: Incident[]) {
   return [...incidents].sort((left, right) => {
@@ -19,7 +20,7 @@ export function useLatestOpenIncident(enabled: boolean, intervalMs = 2500) {
     if (!enabled || loadingRef.current) return
     loadingRef.current = true
     try { setIncidents(rank(await getIncidents('OPEN', 100))); setLoaded(true); setError(null) }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to load open incidents') }
+    catch (reason) { setError(getUserFacingError(reason, 'Unable to load open incidents. Please try again.')) }
     finally { loadingRef.current = false }
   }, [enabled])
 

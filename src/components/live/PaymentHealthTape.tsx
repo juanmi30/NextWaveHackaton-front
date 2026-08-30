@@ -13,6 +13,6 @@ export function PaymentHealthTape({ summary, incidents, liveStatus }: { summary:
     <div><span>Payment volume at risk</span><strong className={paymentVolumeAtRisk > 0 ? 'negative-value' : ''}>{money(paymentVolumeAtRisk)}/min</strong></div>
     <div><span>Detector</span><strong>Run #{liveStatus?.detection.runs ?? '—'}</strong></div>
     <div><span>Traffic</span><LiveIndicator state={liveStatus?.state === 'RUNNING' ? degraded ? 'DEGRADED' : 'LIVE' : 'OFFLINE'} /></div>
-    <div><span>Prediction</span><strong>{liveStatus?.prediction.lastWatchRiskCount ?? '—'} WATCH</strong></div>
+    <div><span>Estimated degradation risk</span><strong>{liveStatus?.prediction.lastWatchRiskCount ?? '—'} WATCH</strong></div>
   </div>
 }

@@ -28,6 +28,7 @@ import type {
   UnifiedGraphResponse,
   UnifiedIncident,
 } from './types'
+import { getUserFacingError } from '../../lib/api'
 
 import './RootCauseExplorer.css'
 
@@ -392,7 +393,7 @@ function GraphNodeCard({ node }: { node: PositionedNode }) {
 
       <div className="unified-node-metrics">
         {probability !== null ? (
-          <span><strong>{probability.toFixed(1)}%</strong> estimated risk</span>
+          <span><strong>{probability.toFixed(1)}%</strong> estimated degradation risk</span>
         ) : (
           <span>{formatEvidenceReason(node.data.evidence?.reason)}</span>
         )}
@@ -518,9 +519,9 @@ function FailureContextSummary({ context }: { context?: FailureContext }) {
         <div className="unified-reasons">
           {reasons.map((reason, index) => (
             <div key={`${reason.code ?? 'reason'}-${reason.category ?? index}`}>
-              <strong>{formatRate(reason.share, 0)} {humanizeFeatureName(reason.code ?? 'unknown_reason')}</strong>
-              <span>{humanizeFeatureName(reason.category ?? 'unknown_category')} · {humanizeFeatureName(reason.actionability ?? 'unknown_actionability')}</span>
-              <small>{formatCount(reason.count)} failures · {humanizeFeatureName(reason.retryability ?? 'unknown')} retryability</small>
+              <strong>{formatRate(reason.share, 0)} {reason.code ?? 'UNKNOWN'}</strong>
+              <span>{reason.category ?? 'UNKNOWN'} · {reason.actionability ?? 'UNKNOWN'}</span>
+              <small>{formatCount(reason.count)} failures · {reason.retryability ?? 'UNKNOWN'} retryability</small>
             </div>
           ))}
         </div>
@@ -599,7 +600,7 @@ function PredictivePipeline({ data }: { data: UnifiedGraphNodeData }) {
         <i aria-hidden="true">→</i>
 
         <div className="unified-stage unified-stage-model">
-          <span>03 · Model</span>
+          <span>03 · Model drivers</span>
           <strong>{modelName}</strong>
           <ModelSignals signals={data.signals} />
           <FeatureSnapshot features={data.features} />
@@ -698,11 +699,10 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
 
       if (!defaultGraph && !requestedIncidentGraph) {
         const reason = results.find((result) => result.status === 'rejected')
-        setError(
-          reason?.status === 'rejected' && reason.reason instanceof Error
-            ? reason.reason.message
-            : 'Unable to load unified risk graph',
-        )
+        setError(getUserFacingError(
+          reason?.status === 'rejected' ? reason.reason : null,
+          'Unable to load the unified risk graph. Please try again.',
+        ))
       }
     })
 
@@ -779,7 +779,7 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
               onClick={() => setFocusMode('predictive')}
             >
               Predictive focus
-              <small>Highest model risk</small>
+              <small>Highest estimated risk</small>
             </button>
             <button
               type="button"

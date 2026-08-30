@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { addLiveDegradation, removeLiveDegradation } from './liveApi'
 import type { AddLiveDegradationInput, LiveDegradation } from './types'
+import { getUserFacingError } from '../../lib/api'
 
 const dimensionKeys = ['merchant', 'provider', 'method', 'country', 'issuingBank'] as const
 const initial = { merchant: '', provider: '', method: '', country: '', issuingBank: '', failureReason: 'DO_NOT_HONOR', approvalRate: '0.30', durationSeconds: '90' }
@@ -30,10 +31,21 @@ export function TrialByFire({ degradations, refreshedAt, onChanged, demoTools, t
       await addLiveDegradation({ dimensions, approvalRate: Number(form.approvalRate), durationSeconds: Number(form.durationSeconds), failureReason: form.failureReason.trim() || undefined })
       setMessage('Degradation active. Waiting for automatic detection.')
       await onChanged()
-    } catch (err) { setMessage(err instanceof Error ? err.message : 'Unable to inject degradation') }
+    } catch (err) { setMessage(getUserFacingError(err, 'Unable to inject the degradation. Please try again.')) }
     finally { setBusy(false) }
   }
-  const remove = async (id: string) => { setBusy(true); try { await removeLiveDegradation(id); await onChanged() } finally { setBusy(false) } }
+  const remove = async (id: string) => {
+    setBusy(true)
+    setMessage(null)
+    try {
+      await removeLiveDegradation(id)
+      await onChanged()
+    } catch (err) {
+      setMessage(getUserFacingError(err, 'Unable to remove the degradation. Please try again.'))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return <>
     <div className="trial-launcher"><div><strong>{degradations.length} active degradation{degradations.length === 1 ? '' : 's'}</strong><span>Injected traffic conditions · detection remains automatic</span></div><button className="button secondary" type="button" onClick={() => setOpen(true)} aria-haspopup="dialog">{triggerLabel}</button></div>

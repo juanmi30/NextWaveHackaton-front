@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getTransactions } from '../features/transactions/transactionsApi'
+import { getUserFacingError } from '../lib/api'
 import type { PaymentStatus, Transaction } from '../types/domain'
 
 const statuses: Array<PaymentStatus | 'ALL'> = ['ALL', 'APPROVED', 'DECLINED', 'ERROR', 'TIMEOUT']
@@ -24,7 +25,7 @@ export function TransactionsPage() {
       })
       setTransactions(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load transactions')
+      setError(getUserFacingError(err, 'Unable to load transactions. Please try again.'))
     } finally {
       setLoading(false)
     }

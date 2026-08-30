@@ -13,6 +13,24 @@ export class ApiError extends Error {
   }
 }
 
+export function getUserFacingError(error: unknown, fallback: string): string {
+  if (error instanceof ApiError) {
+    if (error.status === 401 || error.status === 403) {
+      return 'You do not have permission to complete this action.'
+    }
+    if (error.status === 404) return 'The requested data is no longer available.'
+    if (error.status === 409) return 'The data changed before the request completed. Refresh and try again.'
+    if (error.status === 429) return 'Too many requests. Please wait and try again.'
+    if (error.status >= 500) return 'The service is temporarily unavailable. Please try again.'
+  }
+
+  if (error instanceof TypeError) {
+    return 'Unable to reach the service. Check your connection and try again.'
+  }
+
+  return fallback
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_BASE_URL) {
     throw new Error('VITE_API_URL is missing. Create .env.local using .env.example as a base.')

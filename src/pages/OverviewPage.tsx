@@ -19,6 +19,7 @@ import { useAnimatedNumber } from '../hooks/useAnimatedNumber'
 import { useLiveFreshness } from '../hooks/useLiveFreshness'
 import { useValueFlash } from '../hooks/useValueFlash'
 import { getIncidentAnalysisStatus } from '../features/agent/utils/incidentAnalysisStatus'
+import { getUserFacingError } from '../lib/api'
 
 const percent = (value?: number | null) => typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : 'N/A'
 
@@ -57,7 +58,7 @@ export function OverviewPage() {
       }
       knownIncidentIds.current = new Set(incidentData.map((incident) => incident.id))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load dashboard')
+      setError(getUserFacingError(err, 'Unable to load the dashboard. Please try again.'))
     } finally {
       setLoading(false)
       refreshingRef.current = false
@@ -84,7 +85,7 @@ export function OverviewPage() {
       await seedDemo(true)
       await refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Demo seed failed')
+      setError(getUserFacingError(err, 'Unable to seed demo data. Please try again.'))
     } finally {
       setAction(null)
     }
@@ -99,7 +100,7 @@ export function OverviewPage() {
       await refresh()
       window.setTimeout(() => setAction(null), 1800)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Risk detection failed')
+      setError(getUserFacingError(err, 'Unable to run detection. Please try again.'))
       setAction(null)
     }
   }

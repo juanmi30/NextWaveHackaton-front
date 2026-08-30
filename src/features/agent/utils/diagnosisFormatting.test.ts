@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import type { AgentDiagnosis } from '../types/agent.types.ts'
 import { EMPTY_ROOT_CAUSE, formatConfidence, formatScope, getResponseCodePresentation } from './diagnosisFormatting.ts'
+import { ApiError, getUserFacingError } from '../../../lib/api.ts'
 
 test('formats structured root cause without rendering objects', () => {
   const rootCause = { statement: 'PSE degraded while CARD remained healthy', dimensions: { merchant: null, provider: 'Stripe', method: 'PSE', country: null, issuingBank: null, failureReason: null }, confidence: 0.99 }
@@ -23,4 +24,10 @@ test('presents response code classification and UNKNOWN retryability without inv
   const result = getResponseCodePresentation(evidence)
   assert.deepEqual(result, { responseCode: 'DO_NOT_HONOR', classification: 'Issuer-side', category: 'Issuer', retryPolicy: 'Not established' })
   assert.doesNotMatch(JSON.stringify(result), /Soft decline/)
+})
+
+test('keeps raw backend error bodies out of user-facing messages', () => {
+  const result = getUserFacingError(new ApiError(500, 'Internal backend stack trace'), 'Unable to load data.')
+  assert.equal(result, 'The service is temporarily unavailable. Please try again.')
+  assert.doesNotMatch(result, /Internal backend|stack trace/)
 })
