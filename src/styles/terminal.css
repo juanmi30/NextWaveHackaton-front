@@ -156,10 +156,14 @@ tbody tr:hover { background: var(--terminal-panel-hover); }
 .latest-transactions article { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 9px; animation: panel-enter .18s ease-out; }
 .latest-transactions article time, .latest-transactions article span { color: var(--muted); font-size: 10px; }
 .latest-transactions article b { text-align: right; }
-.agent-live-grid { grid-template-columns: minmax(380px, .8fr) minmax(520px, 1.2fr); }
-.agent-timeline { padding: 15px 16px 4px; }
-.agent-event { padding-bottom: 13px; }
+.agent-live-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+.agent-live-grid > aside { position: static; min-width: 0; }
+.agent-timeline { padding: 15px 16px; }
+.agent-event { min-width: 0; padding-bottom: 0; }
 .agent-event-card { padding: 11px 13px; border-radius: 8px; }
+.agent-timeline .agent-event-card { height: 100%; padding-left: 38px; }
+.agent-timeline .agent-event.highlighted .agent-event-card { padding-left: 13px; }
+.agent-timeline > .empty-state { grid-column: 1 / -1; }
 .agent-event-card h3 { margin: 7px 0 3px; font-size: 13px; }
 .agent-event-meta { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
 .agent-event-meta time { color: var(--terminal-info); }

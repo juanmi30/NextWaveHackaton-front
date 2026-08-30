@@ -98,13 +98,13 @@ td strong { display: block; max-width: 340px; }
 .scenario-progress li.current { color: var(--brand); }
 .scenario-progress li.current i { border-color: var(--brand); box-shadow: 0 0 0 4px #ebe8ff; }
 .agent-control-error { color: var(--danger); font-size: 12px; }
-.agent-live-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, .8fr); gap: 16px; align-items: start; }
-.agent-live-grid > aside { position: sticky; top: 20px; display: grid; gap: 10px; }
-.agent-timeline { padding: 20px 20px 8px; }
-.agent-event { position: relative; padding: 0 0 22px 28px; }
-.agent-timeline .agent-event::before { content: ''; position: absolute; left: 5px; top: 12px; bottom: -5px; width: 2px; background: #e5e8f0; }
-.agent-timeline .agent-event:last-child::before { display: none; }
-.agent-event-dot { position: absolute; top: 7px; left: 0; z-index: 1; width: 12px; height: 12px; border: 3px solid white; border-radius: 50%; background: #97a0af; box-shadow: 0 0 0 1px #d8deea; }
+.agent-live-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-items: start; }
+.agent-live-grid > aside { position: static; min-width: 0; display: grid; gap: 10px; }
+.agent-timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 20px; }
+.agent-event { position: relative; min-width: 0; padding: 0; }
+.agent-timeline .agent-event::before { display: none; }
+.agent-event-dot { position: absolute; top: 15px; left: 14px; z-index: 1; width: 12px; height: 12px; border: 3px solid white; border-radius: 50%; background: #97a0af; box-shadow: 0 0 0 1px #d8deea; }
+.agent-timeline .agent-event-card { height: 100%; padding-left: 38px; }
 .agent-event-card { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: white; }
 .agent-event-card h3 { margin: 10px 0 4px; font-size: 15px; }
 .agent-event-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
@@ -135,7 +135,7 @@ td strong { display: block; max-width: 340px; }
 .diagnosis-chips i { padding: 4px 6px; border-radius: 6px; background: #f1f3f7; color: var(--muted); font-size: 10px; font-style: normal; font-weight: 650; }
 .diagnosis-evidence { display: grid; gap: 6px; }
 .diagnosis-evidence i { color: var(--muted); font-size: 11px; font-style: normal; }
-.agent-live-grid:has(.diagnosis-panel) { grid-template-columns: minmax(0, .9fr) minmax(520px, 1.1fr); }
+.agent-live-grid:has(.diagnosis-panel) { grid-template-columns: minmax(0, 1fr); }
 .diagnosis-panel .panel-header { align-items: flex-start; }
 .diagnosis-section { padding: 18px 22px; border-top: 1px solid var(--line); }
 .diagnosis-section h4 { margin: 0 0 11px; font-size: 13px; }
@@ -311,7 +311,7 @@ th { padding: 13px 18px; }
 td { padding: 16px 18px; }
 .agent-status { gap: 16px; padding: 21px 22px; margin-bottom: 22px; }
 .demo-controls { padding: 21px 22px; margin-bottom: 22px; }
-.agent-live-grid { grid-template-columns: minmax(0, 2fr) minmax(340px, 1fr); gap: 22px; }
+.agent-live-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 .agent-timeline { padding: 24px 24px 10px; }
 .agent-event-card { padding: 17px 19px; }
 .agent-summary { gap: 30px; padding: 22px 24px; margin-bottom: 24px; }
@@ -335,7 +335,7 @@ td { padding: 16px 18px; }
   .app-header { grid-template-columns: 1fr auto; gap: 12px 24px; }
   .app-header .nav-list { grid-column: 1 / -1; grid-row: 2; }
   .route-live-grid { grid-template-columns: 1fr; }
-  .agent-live-grid { grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); }
+  .agent-live-grid { grid-template-columns: minmax(0, 1fr); }
   .live-monitor-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .trial-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -365,6 +365,7 @@ td { padding: 16px 18px; }
   .agent-live-grid { grid-template-columns: 1fr; }
   .agent-live-grid:has(.diagnosis-panel) { grid-template-columns: 1fr; }
   .agent-live-grid > aside { position: static; }
+  .agent-timeline { grid-template-columns: minmax(0, 1fr); }
   .route-live-grid { grid-template-columns: 1fr; }
   .agent-summary { grid-template-columns: 1fr; gap: 16px; }
   .agent-diagnosis-summary { grid-template-columns: 1fr; }
