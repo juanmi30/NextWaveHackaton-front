@@ -67,13 +67,13 @@ function ConfidenceSummary({
             .map((factor) => (
               <article key={factor.code}>
                 <strong>{factor.statement}</strong>
-                <span className="evidence-metric">{factor.effect}</span>
+                <span className={`evidence-metric evidence-${factor.effect.toLowerCase()}`}>{factor.effect}</span>
               </article>
             ))}
 
           {diagnosis.confidenceAnalysis.limitations.map((item) => (
             <article key={item}>
-              <span>Limitation</span>
+              <span className="evidence-metric evidence-limits">Limitation</span>
               <p>{item}</p>
             </article>
           ))}
