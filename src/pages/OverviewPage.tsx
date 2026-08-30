@@ -121,6 +121,7 @@ export function OverviewPage() {
         <div className="actions">
           <button className="button secondary" type="button" onClick={() => void runSeed()} disabled={Boolean(action)}>Seed demo</button>
           <button className="button ghost" type="button" onClick={() => void runDetection()} disabled={Boolean(action)}>Run detection (debug)</button>
+          {liveMode ? <TrialByFire degradations={live.degradations} refreshedAt={live.refreshedAt} onChanged={live.refresh} /> : null}
           <button className="button ghost" type="button" onClick={() => void refresh()} disabled={loading}>Refresh</button>
         </div>
       </div>
@@ -136,7 +137,7 @@ export function OverviewPage() {
         <div className="hero-health-state"><strong>{summary?.state ?? 'NOT READY'}</strong><span>{summary?.incidents.open ?? 0} open · {totalLoss ? `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalLoss / 100)}/min` : 'no current loss'}</span></div>
       </div>
 
-      {liveMode ? <><LiveControlTower status={live.status} busy={live.busy} onStart={live.start} onStop={live.stop} />{summary?.state === 'NORMAL' && summary.incidents.open === 0 ? <div className="quiet-state"><strong>NORMAL</strong><span>Monitoring continuously · no meaningful anomalies detected</span><small>Detection runs: {summary.detection.total} · Quiet runs: {summary.detection.noAnomaly} · Open incidents: 0</small></div> : null}<TrialByFire degradations={live.degradations} refreshedAt={live.refreshedAt} onChanged={live.refresh} /></> : null}
+      {liveMode ? <><LiveControlTower status={live.status} busy={live.busy} onStart={live.start} onStop={live.stop} />{summary?.state === 'NORMAL' && summary.incidents.open === 0 ? <div className="quiet-state"><strong>NORMAL</strong><span>Monitoring continuously · no meaningful anomalies detected</span><small>Detection runs: {summary.detection.total} · Quiet runs: {summary.detection.noAnomaly} · Open incidents: 0</small></div> : null}</> : null}
 
       <div className="metric-grid">
         <MetricCard label="Transactions" value={loading ? '—' : String(summary?.transactions ?? 0)} detail="All ingested transactions" changed={transactionFlash.changed} direction="changed" />
