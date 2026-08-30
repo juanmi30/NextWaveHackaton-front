@@ -18,6 +18,7 @@ import { LiveIndicator } from '../components/live/LiveIndicator'
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber'
 import { useLiveFreshness } from '../hooks/useLiveFreshness'
 import { useValueFlash } from '../hooks/useValueFlash'
+import { getIncidentAnalysisStatus } from '../features/agent/utils/incidentAnalysisStatus'
 
 const percent = (value?: number | null) => typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : 'N/A'
 
@@ -176,16 +177,17 @@ export function OverviewPage() {
           <div className="incident-list">
             {incidents.length === 0 ? (
               <div className="empty-state compact">No open incidents.</div>
-            ) : incidents.map((incident) => (
-              <div className="incident-item" key={incident.id}>
+            ) : incidents.map((incident) => {
+              const analysisStatus = getIncidentAnalysisStatus(incident)
+              return <div className="incident-item" key={incident.id}>
                 <span className={`severity-dot severity-${incident.severity}`} />
                 <div>
                   <strong>{incident.summaryOps ?? 'No operational summary'}</strong>
                   <span>{percent(incident.diagnoses?.[0]?.observedRate)} now · {percent(incident.diagnoses?.[0]?.baselineRate)} baseline</span>
-                  <a className="incident-analyze-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>Analyze →</a>
+                  {analysisStatus === 'COMPLETED' ? <a className="incident-analyze-link primary-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>View diagnosis →</a> : analysisStatus === 'FAILED' ? <a className="incident-analyze-link" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>Retry analysis →</a> : <a className="incident-analysis-running" href={`#/agent-live?incidentId=${encodeURIComponent(incident.id)}`}>● AI analysis running</a>}
                 </div>
               </div>
-            ))}
+            })}
           </div>
         </article>
       </div>

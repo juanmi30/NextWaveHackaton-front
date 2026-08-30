@@ -712,7 +712,7 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
   const incidentAvailable = Boolean(views.incident)
 
   return (
-    <article className="panel unified-panel">
+    <article className={`panel unified-panel unified-focus-${focusMode}`}>
       <div className="panel-header unified-header">
         <div>
           <p className="eyebrow">Unified risk graph</p>
@@ -766,7 +766,7 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
 
       {selectedNode ? <SelectedRouteInspector node={selectedNode} graph={graph} /> : (
         <div className="unified-no-focus">
-          <strong>No route is available for this focus.</strong>
+          <strong>{focusMode === 'predictive' ? 'No predictive routes in the active window.' : 'No incident route is available for this focus.'}</strong>
           <span>
             Traffic may be outside the recent prediction window. Confirmed incidents remain
             separate and can still be inspected when an incident focus is available.
@@ -779,11 +779,11 @@ export function RootCauseExplorer({ incidentId }: { incidentId?: string | null }
           <span className="unified-kicker">Payment topology</span>
           <strong>All active payment routes</strong>
         </div>
-        <small>Click a node to inspect its route segment · solid edges mark the backend-selected path</small>
+        <small><b>{graph.summary.activeRoutes}</b> active routes · Click a node to inspect its segment</small>
       </div>
 
       <div className="unified-scroll">
-        <div className="unified-canvas" style={{ width: layout.width, height: layout.height }}>
+        <div className={`unified-canvas ${graph.summary.activeRoutes === 0 ? 'unified-canvas-empty' : ''}`} style={{ width: layout.width, height: graph.summary.activeRoutes === 0 ? Math.max(340, layout.height) : layout.height }}>
           <svg
             className="unified-edges"
             width={layout.width}

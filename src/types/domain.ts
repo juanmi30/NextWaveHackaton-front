@@ -47,6 +47,7 @@ export type Incident = {
   severity: number
   priorityRank?: number
   priorityScore?: number
+  analysisStatus?: 'RUNNING' | 'COMPLETED' | 'FAILED'
   status: IncidentStatus
   expectedApprovals: number
   actualApprovals: number

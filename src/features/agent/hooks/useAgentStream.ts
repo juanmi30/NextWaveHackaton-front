@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MockAgentEventSource } from '../services/mockAgentStream'
 import type { AgentEventSource } from '../services/agentEventSource'
 import { approvalDropColombia } from '../scenarios/approvalDropColombia'
@@ -32,6 +32,7 @@ export function useAgentStream(incidentId: string | null): AgentStreamState {
   const [diagnosis, setDiagnosis] = useState<AgentDiagnosis | null>(null)
   const [toolActivities, setToolActivities] = useState<AgentToolActivity[]>([])
   const [error, setError] = useState<string | null>(null)
+  const automaticallyStartedIncident = useRef<string | null>(null)
   const isSse = dataSources.agent === 'sse'
   const source = useMemo<AgentEventSource>(() => isSse && incidentId ? new SseAgentEventSource(incidentId, {
     onDiagnosis: setDiagnosis,
@@ -49,6 +50,12 @@ export function useAgentStream(incidentId: string | null): AgentStreamState {
     setDemoStatus('RUNNING')
     source.start((event) => setEvents((current) => [...current, event]), () => setDemoStatus('COMPLETED'))
   }, [demoStatus, incidentId, isSse, source])
+  useEffect(() => {
+    if (!isSse || !incidentId || automaticallyStartedIncident.current === incidentId) return
+    automaticallyStartedIncident.current = incidentId
+    const timer = window.setTimeout(startDemo, 0)
+    return () => window.clearTimeout(timer)
+  }, [incidentId, isSse, startDemo])
   const resetDemo = useCallback(() => { source.reset(); setEvents([]); setDiagnosis(null); setToolActivities([]); setError(null); setDemoStatus('IDLE') }, [source])
   const pauseDemo = useCallback(() => { if (!isSse && demoStatus === 'RUNNING') { source.pause?.(); setDemoStatus('PAUSED') } }, [demoStatus, isSse, source])
   const resumeDemo = useCallback(() => { if (!isSse && demoStatus === 'PAUSED') { source.resume?.(); setDemoStatus('RUNNING') } }, [demoStatus, isSse, source])
