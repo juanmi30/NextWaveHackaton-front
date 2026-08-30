@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import './App.css'
+import './styles/terminal.css'
+import './styles/animations.css'
 import { DashboardLayout, type PageKey } from './components/layout/DashboardLayout'
 import { IncidentsPage } from './pages/IncidentsPage'
 import { OverviewPage } from './pages/OverviewPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { AgentLivePage } from './features/agent/pages/AgentLivePage'
 import { AgentStreamProvider } from './features/agent/context/AgentStreamContext'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 
 const pageFromHash = (): PageKey => {
   const hash = window.location.hash.replace('#/', '').split('?')[0]
@@ -24,11 +27,13 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
-  const navigate = (nextPage: PageKey) => {
+  const navigate = useCallback((nextPage: PageKey) => {
     const hash = nextPage === 'overview' ? '#/' : `#/${nextPage}`
     if (window.location.hash !== hash) window.location.hash = hash
     setPage(nextPage)
-  }
+  }, [])
+
+  useKeyboardShortcuts({ navigate })
 
   let content = <OverviewPage />
   if (page === 'incidents') content = <IncidentsPage />

@@ -41,7 +41,7 @@ export function TransactionsPage() {
           <p>Inspect the events feeding risk analysis.</p>
         </div>
         <form className="filters" onSubmit={(event) => { event.preventDefault(); setProvider(providerDraft) }}>
-          <input className="input" placeholder="Provider e.g. dLocal" value={providerDraft} onChange={(event) => setProviderDraft(event.target.value)} />
+          <input className="input" type="search" placeholder="Provider e.g. dLocal" value={providerDraft} onChange={(event) => setProviderDraft(event.target.value)} />
           <select className="select" value={status} onChange={(event) => setStatus(event.target.value as PaymentStatus | 'ALL')}>
             {statuses.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
@@ -50,6 +50,8 @@ export function TransactionsPage() {
       </div>
 
       {error ? <div className="notice error-notice">{error}</div> : null}
+
+      {!loading && transactions.length > 0 ? <section className="latest-transactions" aria-label="Latest transactions"><div><p className="eyebrow">Latest transactions</p><span>Most recent real payment activity</span></div>{transactions.slice(0, 3).map((tx) => <article key={tx.id}><time dateTime={tx.occurredAt}>{new Date(tx.occurredAt).toLocaleTimeString([], { hour12: false })}</time><strong>{tx.provider}</strong><span>{tx.method} · {tx.country}</span><span className={`pill tx-${tx.status.toLowerCase()}`}>{tx.status}</span><b>{money(tx.amountCents, tx.currency)}</b></article>)}</section> : null}
 
       <article className="panel panel-wide">
         <div className="table-wrap">
@@ -67,7 +69,7 @@ export function TransactionsPage() {
                 </tr>
               ))}
               {!loading && transactions.length === 0 ? <tr><td colSpan={6}><div className="empty-state">No transactions found.</div></td></tr> : null}
-              {loading ? <tr><td colSpan={6}><div className="empty-state">Loading transactions…</div></td></tr> : null}
+              {loading ? <tr><td colSpan={6}><div className="skeleton-stack" aria-label="Loading transactions"><i /><i /><i /></div></td></tr> : null}
             </tbody>
           </table>
         </div>

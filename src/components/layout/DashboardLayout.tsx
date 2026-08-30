@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { HealthBadge } from '../../HealthBadge'
+import { LiveClock } from '../live/LiveClock'
 
 export type PageKey = 'overview' | 'incidents' | 'transactions' | 'agent-live'
 
@@ -43,7 +44,9 @@ export function DashboardLayout({ page, onNavigate, children }: Props) {
         </nav>
 
         <div className="header-status">
+          <span className="shortcut-hint" title="Keyboard: 1 Overview · 2 Incidents · 3 Transactions · 4 Agent Live">Keys 1–4</span>
           <HealthBadge />
+          <LiveClock />
         </div>
       </header>
 

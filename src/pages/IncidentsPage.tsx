@@ -63,7 +63,7 @@ export function IncidentsPage() {
             <thead><tr><th>Priority</th><th>Incident</th><th>Status</th><th>Approval</th><th>Impact</th><th>Detected</th><th>Actions</th></tr></thead>
             <tbody>
               {incidents.map((incident) => (
-                <tr key={incident.id}>
+                <tr className={incident.status === 'OPEN' ? 'incident-open-row' : ''} key={incident.id}>
                   <td><strong className="priority-rank">{incident.priorityRank ? `#${incident.priorityRank}` : '—'}</strong><span className={`pill severity-${incident.severity}`}>{incident.severity >= 4 ? 'CRITICAL' : incident.severity >= 3 ? 'HIGH' : incident.severity >= 2 ? 'MEDIUM' : 'LOW'}</span></td>
                   <td><strong>{incident.summaryOps ?? 'No operational summary'}</strong><span className="cell-subtitle">{incident.summaryExec ?? 'No executive summary'}</span></td>
                   <td><span className={`pill status-${incident.status.toLowerCase()}`}>{incident.status}</span></td>
@@ -80,7 +80,7 @@ export function IncidentsPage() {
                 </tr>
               ))}
               {!loading && incidents.length === 0 ? <tr><td colSpan={7}><div className="empty-state">No incidents for this filter.</div></td></tr> : null}
-              {loading ? <tr><td colSpan={7}><div className="empty-state">Loading incidents…</div></td></tr> : null}
+              {loading ? <tr><td colSpan={7}><div className="skeleton-stack" aria-label="Loading incidents"><i /><i /><i /></div></td></tr> : null}
             </tbody>
           </table>
         </div>

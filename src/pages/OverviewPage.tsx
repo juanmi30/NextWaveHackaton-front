@@ -12,6 +12,12 @@ import { dataSources } from '../config/dataSources'
 import { useLiveMonitor } from '../features/live/useLiveMonitor'
 import { LiveControlTower } from '../features/live/LiveControlTower'
 import { TrialByFire } from '../features/live/TrialByFire'
+import { PaymentHealthTape } from '../components/live/PaymentHealthTape'
+import { NewIncidentToast } from '../components/live/NewIncidentToast'
+import { LiveIndicator } from '../components/live/LiveIndicator'
+import { useAnimatedNumber } from '../hooks/useAnimatedNumber'
+import { useLiveFreshness } from '../hooks/useLiveFreshness'
+import { useValueFlash } from '../hooks/useValueFlash'
 
 const percent = (value?: number | null) => typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : 'N/A'
 
@@ -25,7 +31,10 @@ export function OverviewPage() {
   const [loading, setLoading] = useState(true)
   const [action, setAction] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [dashboardUpdatedAt, setDashboardUpdatedAt] = useState(0)
+  const [newIncident, setNewIncident] = useState<Incident | null>(null)
   const refreshingRef = useRef(false)
+  const knownIncidentIds = useRef<Set<string> | null>(null)
 
   const refresh = useCallback(async () => {
     if (refreshingRef.current) return
@@ -40,6 +49,12 @@ export function OverviewPage() {
       setSummary(summaryData)
       setBreakdown(analysisData)
       setIncidents(incidentData)
+      setDashboardUpdatedAt(Date.now())
+      if (knownIncidentIds.current) {
+        const discovered = incidentData.find((incident) => !knownIncidentIds.current?.has(incident.id))
+        if (discovered) setNewIncident(discovered)
+      }
+      knownIncidentIds.current = new Set(incidentData.map((incident) => incident.id))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load dashboard')
     } finally {
@@ -49,10 +64,16 @@ export function OverviewPage() {
   }, [])
 
   useEffect(() => {
-    void refresh()
-    if (!liveMode) return
+    if (!newIncident) return
+    const timer = window.setTimeout(() => setNewIncident(null), 6500)
+    return () => window.clearTimeout(timer)
+  }, [newIncident])
+
+  useEffect(() => {
+    const initialTimer = window.setTimeout(() => void refresh(), 0)
+    if (!liveMode) return () => window.clearTimeout(initialTimer)
     const timer = window.setInterval(() => void refresh(), 2500)
-    return () => window.clearInterval(timer)
+    return () => { window.clearTimeout(initialTimer); window.clearInterval(timer) }
   }, [liveMode, refresh])
 
   const runSeed = async () => {
@@ -82,6 +103,12 @@ export function OverviewPage() {
     }
   }
 
+  const approvalValue = useAnimatedNumber(summary?.approvalRate ?? 0)
+  const approvalFlash = useValueFlash(summary?.approvalRate)
+  const transactionFlash = useValueFlash(summary?.transactions)
+  const freshness = useLiveFreshness(dashboardUpdatedAt, 2500, Boolean(error || live.error))
+  const totalLoss = incidents.reduce((total, incident) => total + incident.lossPerMinuteCents, 0)
+
   return (
     <section className="page-content">
       <div className="page-heading">
@@ -98,16 +125,26 @@ export function OverviewPage() {
       </div>
 
       {action ? <div className="notice success-notice">{action}</div> : null}
-      {error || live.error ? <div className="notice error-notice">Backend connectivity warning: {error ?? live.error}</div> : null}
+      {error || live.error ? <div className="notice error-notice">Live data temporarily unavailable. Showing last known state. {error ?? live.error}</div> : null}
+
+      {liveMode ? <PaymentHealthTape summary={summary} incidents={incidents} liveStatus={live.status} /> : null}
+
+      <div className="payment-health-hero">
+        <div><span>Payment health</span><strong>{loading ? '—' : `${(approvalValue * 100).toFixed(1)}%`}</strong><small title="Share of attempted payments approved in the current analytics window.">approval rate</small></div>
+        <LiveIndicator state={freshness.state === 'DISCONNECTED' ? 'OFFLINE' : freshness.state} detail={freshness.label} />
+        <div className="hero-health-state"><strong>{summary?.state ?? 'NOT READY'}</strong><span>{summary?.incidents.open ?? 0} open · {totalLoss ? `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalLoss / 100)}/min` : 'no current loss'}</span></div>
+      </div>
 
       {liveMode ? <><LiveControlTower status={live.status} busy={live.busy} onStart={live.start} onStop={live.stop} />{summary?.state === 'NORMAL' && summary.incidents.open === 0 ? <div className="quiet-state"><strong>NORMAL</strong><span>Monitoring continuously · no meaningful anomalies detected</span><small>Detection runs: {summary.detection.total} · Quiet runs: {summary.detection.noAnomaly} · Open incidents: 0</small></div> : null}<TrialByFire degradations={live.degradations} refreshedAt={live.refreshedAt} onChanged={live.refresh} /></> : null}
 
       <div className="metric-grid">
-        <MetricCard label="Transactions" value={loading ? '—' : String(summary?.transactions ?? 0)} detail="All ingested transactions" />
-        <MetricCard label="Approval rate" value={loading ? '—' : percent(summary?.approvalRate)} detail={`Failure ${percent(summary?.failureRate)}`} tone="success" />
+        <MetricCard label="Transactions" value={loading ? '—' : String(summary?.transactions ?? 0)} detail="All ingested transactions" changed={transactionFlash.changed} direction="changed" />
+        <MetricCard label="Approval rate" value={loading ? '—' : percent(summary?.approvalRate)} detail={`Failure ${percent(summary?.failureRate)}`} tone={summary?.state === 'NORMAL' ? 'success' : 'danger'} changed={approvalFlash.changed} direction={approvalFlash.direction === 'UP' ? 'up' : approvalFlash.direction === 'DOWN' ? 'down' : 'changed'} />
         <MetricCard label="Open incidents" value={loading ? '—' : String(summary?.incidents.open ?? 0)} detail={`${summary?.incidents.highCritical ?? 0} high / critical`} tone={(summary?.incidents.open ?? 0) > 0 ? 'warning' : 'default'} />
+        <MetricCard label="Estimated loss" value={loading ? '—' : `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalLoss / 100)}/min`} detail="Across loaded open incidents" tone={totalLoss > 0 ? 'danger' : 'default'} />
         <MetricCard label="Detection runs" value={loading ? '—' : String(summary?.detection.total ?? 0)} detail={`${summary?.detection.noAnomaly ?? 0} quiet · ${summary?.detection.incidentsFound ?? 0} incidents`} tone={(summary?.detection.incidentsFound ?? 0) > 0 ? 'warning' : 'default'} />
       </div>
+      <NewIncidentToast incident={newIncident} onClose={() => setNewIncident(null)} />
 
       <AgentSummaryCard />
       {!liveMode ? <RoutingRecommendationCard /> : null}
@@ -126,7 +163,7 @@ export function OverviewPage() {
             </div>
             <span className="pill neutral">groupBy: route</span>
           </div>
-          {loading ? <div className="empty-state">Loading analytics breakdown…</div> : <BreakdownTable rows={breakdown?.rows ?? []} />}
+          {loading ? <div className="skeleton-stack" aria-label="Loading analytics"><i /><i /><i /></div> : <BreakdownTable rows={breakdown?.rows ?? []} />}
         </article> : null}
 
         <article className="panel">
