@@ -4,7 +4,7 @@ import { LiveClock } from '../live/LiveClock'
 import { useThemePreference } from '../../hooks/useThemePreference'
 import { useSidebarState } from '../../hooks/useSidebarState'
 
-export type PageKey = 'overview' | 'incidents' | 'transactions' | 'agent-live'
+export type PageKey = 'overview' | 'incidents' | 'transactions' | 'agent-live' | 'ml-metrics'
 
 type Props = {
   page: PageKey
@@ -17,6 +17,7 @@ const links: Array<{ key: PageKey; label: string; icon: string }> = [
   { key: 'incidents', label: 'Incidents', icon: '⚠' },
   { key: 'transactions', label: 'Transactions', icon: '↔' },
   { key: 'agent-live', label: 'Agent Live', icon: '●' },
+  { key: 'ml-metrics', label: 'ML Metrics', icon: '◇' },
 ]
 
 export function DashboardLayout({ page, onNavigate, children }: Props) {
@@ -61,7 +62,7 @@ export function DashboardLayout({ page, onNavigate, children }: Props) {
             <span className="theme-label">{theme === 'dark' ? 'Dark mode' : 'Light mode'}</span>
           </button>
           <HealthBadge compact={sidebar.collapsed && !sidebar.isMobile} />
-          <span className="shortcut-hint" title="1 Overview · 2 Incidents · 3 Transactions · 4 Agent Live">Shortcuts: 1–4</span>
+          <span className="shortcut-hint" title="1 Overview · 2 Incidents · 3 Transactions · 4 Agent Live · 5 ML Metrics">Shortcuts: 1–5</span>
         </div>
       </aside>
 

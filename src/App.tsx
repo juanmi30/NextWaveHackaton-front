@@ -12,10 +12,11 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useLatestOpenIncident } from './features/incidents/useLatestOpenIncident'
 import { compareIncidentPriority } from './features/incidents/incidentPriority'
 import { dataSources } from './config/dataSources'
+import { MLMetricsPage } from './features/ml/MLMetricsPage'
 
 const pageFromHash = (): PageKey => {
   const hash = window.location.hash.replace('#/', '').split('?')[0]
-  if (hash === 'incidents' || hash === 'transactions' || hash === 'agent-live') return hash
+  if (hash === 'incidents' || hash === 'transactions' || hash === 'agent-live' || hash === 'ml-metrics') return hash
   return 'overview'
 }
 const incidentIdFromHash = () => new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('incidentId')
@@ -57,6 +58,7 @@ function App() {
   if (page === 'incidents') content = <IncidentsPage />
   if (page === 'transactions') content = <TransactionsPage />
   if (page === 'agent-live') content = <AgentLivePage openIncidents={openIncidents.incidents} openIncidentsLoaded={openIncidents.loaded} priorityIncident={priorityIncident} onSwitchIncident={selectIncident} />
+  if (page === 'ml-metrics') content = <MLMetricsPage />
 
   return <AgentStreamProvider incidentId={incidentId}><DashboardLayout page={page} onNavigate={navigate}>{content}</DashboardLayout></AgentStreamProvider>
 }
